@@ -281,10 +281,10 @@ void ButiBullet::RigidBody::ClearForces()
     modifiedFlags &= ~Modified_ApplyCenterImpulse;
     modifiedFlags &= ~Modified_ApplyTorque;
     modifiedFlags &= ~Modified_ApplyTorqueImpulse;
-    appliedCenterForce =ButiEngine::Vector3::Zero;
-    appliedCenterImpulse = ButiEngine::Vector3::Zero;
-    appliedTorque = ButiEngine::Vector3::Zero;
-    appliedTorqueImpulse = ButiEngine::Vector3::Zero;
+    appliedCenterForce =ButiEngine::Vector3Const::Zero;
+    appliedCenterImpulse = ButiEngine::Vector3Const::Zero;
+    appliedTorque = ButiEngine::Vector3Const::Zero;
+    appliedTorqueImpulse = ButiEngine::Vector3Const::Zero;
 }
 
 
@@ -374,22 +374,22 @@ void ButiBullet::RigidBody::OnPrepareStepSimulation()
         if ((modifiedFlags & Modified_ApplyCenterForce) )
         {
             p_btRigidBody->applyCentralForce(PhysicsDetail::BulletUtil::Vector3ToBtVector3(appliedCenterForce));
-            appliedCenterForce = ButiEngine:: Vector3::Zero;
+            appliedCenterForce = ButiEngine:: Vector3Const::Zero;
         }
         if ((modifiedFlags & Modified_ApplyCenterImpulse))
         {
             p_btRigidBody->applyCentralImpulse(PhysicsDetail::BulletUtil::Vector3ToBtVector3(appliedCenterImpulse));
-            appliedCenterImpulse = ButiEngine::Vector3::Zero;
+            appliedCenterImpulse = ButiEngine::Vector3Const::Zero;
         }
         if ((modifiedFlags & Modified_ApplyCenterImpulse) )
         {
             p_btRigidBody->applyTorque(PhysicsDetail::BulletUtil::Vector3ToBtVector3(appliedTorque));
-            appliedTorque = ButiEngine::Vector3::Zero;
+            appliedTorque = ButiEngine::Vector3Const::Zero;
         }
         if ((modifiedFlags & Modified_ApplyTorqueImpulse) )
         {
             p_btRigidBody->applyTorqueImpulse(PhysicsDetail::BulletUtil::Vector3ToBtVector3(appliedTorqueImpulse));
-            appliedTorqueImpulse =ButiEngine::Vector3::Zero;
+            appliedTorqueImpulse =ButiEngine::Vector3Const::Zero;
         }
     }
 

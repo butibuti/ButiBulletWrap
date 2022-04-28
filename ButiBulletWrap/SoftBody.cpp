@@ -1,7 +1,7 @@
 
 #include"stdafx.h"
 
-#include "ButiRendering_Dx12/MeshPrimitive.h"
+#include "ButiRendering_Dx12/Header/MeshPrimitive.h""
 #include "SoftBody.h"
 #include"PhysicsWorld.h"
 #include "BulletUtil.h"

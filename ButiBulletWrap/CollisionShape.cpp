@@ -13,7 +13,7 @@
 #include "BulletCollision/CollisionShapes/btCompoundShape.h"
 
 #include"BulletUtil.h"
-#include"ButiRendering_Dx12/MeshPrimitive.h"
+#include"ButiRendering_Dx12/Header/MeshPrimitive.h"
 
 ButiBullet::CollisionShape::CollisionShape():p_shape(nullptr), position(), isTrigger(false)
 {
@@ -221,7 +221,7 @@ void ButiBullet::PhysicsDetail::BtShapeManager::Refresh()
 	static ButiEngine::Quat IdentityQuat;
 	btCollisionShape* shape;
 	if (list_vlp_collisionShapes.GetSize() == 1 &&
-		(*list_vlp_collisionShapes.begin())->GetPosition() == ButiEngine::Vector3::Zero &&
+		(*list_vlp_collisionShapes.begin())->GetPosition() == ButiEngine::Vector3Const::Zero &&
 		(*list_vlp_collisionShapes.begin())->GetRotation() == IdentityQuat) {
 		shape = (*list_vlp_collisionShapes.begin())->GetBtCollisionShape();
 	}
@@ -273,7 +273,7 @@ ButiBullet::PlaneCollisionShape::~PlaneCollisionShape()
 
 bool ButiBullet::PlaneCollisionShape::Initialize()
 {
-    return Initialize(ButiEngine::Vector3::YAxis);
+    return Initialize(ButiEngine::Vector3Const::YAxis);
 }
 
 bool ButiBullet::PlaneCollisionShape::Initialize(const ButiEngine::Vector3& arg_direction)
