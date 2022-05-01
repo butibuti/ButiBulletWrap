@@ -497,7 +497,6 @@ void ButiBullet::RigidBody::CreateBtRigidBody()
     else
     {
     }
-    // TODO: ‚æ‚­‚È‚¢‹C‚ª‚·‚é
     p_btRigidBody->setSleepingThresholds(0.0f, 0.0f);
 
     modifiedFlags |= Modified_Activate;

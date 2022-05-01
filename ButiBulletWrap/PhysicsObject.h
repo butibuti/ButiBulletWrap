@@ -25,7 +25,7 @@ public:
 
     const ButiEngine::List< ButiEngine::Value_ptr< PhysicsObject>>& ContactBodies() const { return list_vlp_contactBodies; }
     void SetEventListener(PhysicsDetail::IPhysicsObjectEventListener* arg_p_listener) { p_listener = arg_p_listener; }
-    void SetOwnerData(void* arg_p_data) { p_ownerData =reinterpret_cast<PhysicsObject*> (arg_p_data); }
+    void SetOwnerData(void* arg_p_data) { p_ownerData = arg_p_data; }
     void* OwnerData() const { return p_ownerData; }
 
     PhysicsObjectType GetPhysicsObjectType() const { return resourceType; }
@@ -58,7 +58,6 @@ private:
     ButiEngine::List<ButiEngine::Value_ptr< PhysicsObject>> list_vlp_contactBodies;
     PhysicsDetail::IPhysicsObjectEventListener* p_listener = nullptr;
     void* p_ownerData = nullptr;
-
     friend class PhysicsWorld;
 };
 }

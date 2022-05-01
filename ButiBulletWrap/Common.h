@@ -33,6 +33,11 @@ class btGeneric6DofSpringConstraint;
 #else
 #define BUTIBULLET_API __declspec(dllimport)
 #endif
+
+namespace ButiEngine {
+class GameObject;
+}
+
 namespace ButiBullet {
 
 class PhysicsWorld;
@@ -90,6 +95,11 @@ enum class RigidBodyLimitFlags
     LockedAll = LockedPosition | LockedRotation,
 };
 
+struct ContactData {
+    PhysicsObject* p_otherPhysicsObject;
+    ContactPoint* p_contactPoint;
+    ButiEngine::Value_weak_ptr<ButiEngine::GameObject> vwp_gameObject;
+};
 class IRigidBody {
 public:
     virtual void SetMass(const float arg_mass) = 0;
