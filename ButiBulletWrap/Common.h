@@ -95,6 +95,7 @@ enum class RigidBodyLimitFlags
     LockedAll = LockedPosition | LockedRotation,
 };
 
+
 struct ContactData {
     PhysicsObject* p_otherPhysicsObject;
     ContactPoint* p_contactPoint;

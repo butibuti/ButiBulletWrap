@@ -120,7 +120,7 @@ void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
 
 
 
-    p_btWorld->applyGravity();
+    //p_btWorld->applyGravity();
     const float iteration = 2.0f;   
     p_btWorld->stepSimulation(arg_elapsedSeconds, 2, internalTimeUnit / iteration);
 
@@ -209,8 +209,8 @@ void ButiBullet::PhysicsWorld::Initialize()
     p_btSolver = new btSequentialImpulseConstraintSolver();
 
     p_btWorld = new btSoftRigidDynamicsWorld(p_btCollisionDispatcher, p_btBroadphase, p_btSolver, p_btCollisionConfig, nullptr);
-    
-    p_btWorld->setGravity(btVector3(0.0f, -9.81f, 0.0f));
+
+    p_btWorld->setGravity(btVector3(0.0f, 0.0f, 0.0f));
 
 
     p_btGhostPairCallback = new btGhostPairCallback();
