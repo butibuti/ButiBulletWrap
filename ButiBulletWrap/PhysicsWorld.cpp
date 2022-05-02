@@ -158,9 +158,11 @@ void ButiBullet::PhysicsWorld::ProcessContactCommands()
             {
             case ContactCommandType::Begin:
                 command.self->BeginContact(command.other);
+                command.other->BeginContact(command.self);
                 break;
             case ContactCommandType::End:
                 command.self->EndContact(command.other);
+                command.other->EndContact(command.self);
                 break;
             default:
 
@@ -173,6 +175,7 @@ void ButiBullet::PhysicsWorld::ProcessContactCommands()
     for (auto& obj : list_vlp_physicsObject) {
         for (auto& other : obj->list_vlp_contactBodies) {
             obj->OnCollisionStay(other.get(), nullptr);
+            other->OnCollisionStay(obj.get(), nullptr);
         }
     }
 }

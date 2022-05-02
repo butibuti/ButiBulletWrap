@@ -25,8 +25,8 @@ public:
 
     const ButiEngine::List< ButiEngine::Value_ptr< PhysicsObject>>& ContactBodies() const { return list_vlp_contactBodies; }
     void SetEventListener(PhysicsDetail::IPhysicsObjectEventListener* arg_p_listener) { p_listener = arg_p_listener; }
-    void SetOwnerData(void* arg_p_data) { p_ownerData = arg_p_data; }
-    void* OwnerData() const { return p_ownerData; }
+    void SetOwnerData(ButiEngine::Value_weak_ptr<void> arg_vwp_data) { m_vwp_ownerData = arg_vwp_data; }
+    ButiEngine::Value_weak_ptr<void> GetOwnerData() const { return m_vwp_ownerData; }
 
     PhysicsObjectType GetPhysicsObjectType() const { return resourceType; }
 protected:
@@ -57,7 +57,7 @@ private:
 
     ButiEngine::List<ButiEngine::Value_ptr< PhysicsObject>> list_vlp_contactBodies;
     PhysicsDetail::IPhysicsObjectEventListener* p_listener = nullptr;
-    void* p_ownerData = nullptr;
+    ButiEngine::Value_weak_ptr<void> m_vwp_ownerData;
     friend class PhysicsWorld;
 };
 }
