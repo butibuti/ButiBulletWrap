@@ -234,9 +234,6 @@ void ButiBullet::RigidBody::SetTransform(const ButiEngine::Matrix4x4& arg_transf
 
 void ButiBullet::RigidBody::ApplyForce(const ButiEngine::Vector3& arg_force)
 {
-    if (arg_force.GetLength() > 0.1) {
-        std::int32_t i= 0;
-    }
     appliedCenterForce += arg_force;
     modifiedFlags |= Modified_ApplyCenterForce;
     Activate();
@@ -417,6 +414,7 @@ void ButiBullet::RigidBody::OnAfterStepSimulation()
 void ButiBullet::RigidBody::RemoveFromBtWorld()
 {
     GetPhysicsWorld()->GetBtWorld()->removeRigidBody(p_btRigidBody);
+    SetPhysicsWorld(nullptr);
 }
 
 void ButiBullet::RigidBody::AttemptAddToActiveWorld()

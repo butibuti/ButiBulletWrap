@@ -76,6 +76,7 @@ public:
 
 
     BUTIBULLET_API btRigidBody* GetBody() const { return p_btRigidBody; }
+    void SetModifiedAll(){ modifiedFlags = Modified_All; }
 
 protected:
     BUTIBULLET_API void OnPrepareStepSimulation() override;

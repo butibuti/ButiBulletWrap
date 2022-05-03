@@ -77,12 +77,13 @@ void ButiBullet::PhysicsObject::SetPhysicsWorld(ButiEngine::Value_ptr< PhysicsWo
 
 void ButiBullet::PhysicsObject::BeginContact(ButiEngine::Value_ptr< PhysicsObject> arg_vlp_otherObject)
 {
-	list_vlp_contactBodies.Add(arg_vlp_otherObject);
+	list_vwp_contactBodies.Add(arg_vlp_otherObject);
 	OnCollisionEnter(arg_vlp_otherObject.get(), nullptr);
 }
 
 void ButiBullet::PhysicsObject::EndContact(ButiEngine::Value_ptr< PhysicsObject> arg_vlp_otherObject)
 {
-	if (!list_vlp_contactBodies.Remove(arg_vlp_otherObject)) return;
+	ButiEngine::Value_weak_ptr< PhysicsObject> vwp_rem = arg_vlp_otherObject;
+	if (!list_vwp_contactBodies.Remove(vwp_rem)) return;
 	OnCollisionLeave(arg_vlp_otherObject.get(), nullptr);
 }
