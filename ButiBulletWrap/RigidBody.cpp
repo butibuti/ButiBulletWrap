@@ -390,7 +390,6 @@ void ButiBullet::RigidBody::OnPrepareStepSimulation()
         }
     }
 
-    // activate —v‹
     if ((modifiedFlags & Modified_Activate) )
     {
         p_btRigidBody->activate();
@@ -428,6 +427,11 @@ void ButiBullet::RigidBody::Activate()
 
 void ButiBullet::RigidBody::CreateBtRigidBody()
 {
+    if (p_btRigidBody) {
+        modifiedFlags |= Modified_Activate;
+        AddToWorld();
+        return;
+    }
     btCollisionShape* shape = p_btShapeManager.GetBtCollisionShape();
 
 
