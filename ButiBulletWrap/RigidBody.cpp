@@ -114,14 +114,102 @@ void ButiBullet::RigidBody::Initialize(ButiEngine::Value_ptr<CollisionShape> arg
 
 void ButiBullet::RigidBody::SetMass(const float arg_mass)
 {
+    std::lock_guard lock(mtx_param);
     mass = arg_mass;
     modifiedFlags |= Modified_Mass;
 }
 
 void ButiBullet::RigidBody::SetScale(const float arg_scale)
 {
+    std::lock_guard lock(mtx_param);
     scale = arg_scale;
     Activate();
+}
+
+
+void ButiBullet::RigidBody::SetVelocity(const ButiEngine::Vector3& arg_velocity)
+{
+    std::lock_guard lock(mtx_param);
+    linearVelocity = arg_velocity;
+    modifiedFlags |= Modified_LinearVelocity;
+}
+
+
+void ButiBullet::RigidBody::SetAngularVelocity(const ButiEngine::Vector3& arg_velocity)
+{
+    std::lock_guard lock(mtx_param);
+    angularVelocity = arg_velocity;
+    modifiedFlags |= Modified_AngularVelocity;
+}
+
+void ButiBullet::RigidBody::SetLinearLimits(ButiEngine:: Flags<RigidBodyLimitFlags> arg_flags)
+{
+    std::lock_guard lock(mtx_param);
+    flg_linearLimits = arg_flags;
+    modifiedFlags |= Modified_LimittFlags;
+}
+
+void ButiBullet::RigidBody::SetAngularLimits(ButiEngine::Flags<RigidBodyLimitFlags> arg_flags)
+{
+    std::lock_guard lock(mtx_param);
+    flg_angularLimits = arg_flags;
+    modifiedFlags |= Modified_LimittFlags;
+}
+
+void ButiBullet::RigidBody::SetLinearDamping(const float arg_damping)
+{
+    std::lock_guard lock(mtx_param);
+    linearDamping = arg_damping;
+    modifiedFlags |= Modified_UniformParams;
+}
+
+void ButiBullet::RigidBody::SetAngularDamping(const float arg_damping)
+{
+    std::lock_guard lock(mtx_param);
+    angularDamping = arg_damping;
+    modifiedFlags |= Modified_UniformParams;
+}
+
+void ButiBullet::RigidBody::SetFriction(const float arg_friction)
+{
+    std::lock_guard lock(mtx_param);
+    friction = friction;
+    modifiedFlags |= Modified_UniformParams;
+}
+
+void ButiBullet::RigidBody::SetRestitution(const float arg_restitution)
+{
+    std::lock_guard lock(mtx_param);
+    restitution = arg_restitution;
+    modifiedFlags |= Modified_UniformParams;
+}
+
+void ButiBullet::RigidBody::SetIsKinematic(const bool arg_enabled)
+{
+    std::lock_guard lock(mtx_param);
+    isKinematicObject = arg_enabled;
+    modifiedFlags |= Modified_ReaddToWorld;
+}
+
+void ButiBullet::RigidBody::SetIsAdditionalDamping(const bool arg_enabled)
+{
+    std::lock_guard lock(mtx_param);
+    isAdditionalDamping= arg_enabled;
+    modifiedFlags |= Modified_ReaddToWorld;
+}
+
+void ButiBullet::RigidBody::SetCollisionGroup(const uint32_t arg_group)
+{
+    std::lock_guard lock(mtx_param);
+    group = arg_group;
+    modifiedFlags |= Modified_ReaddToWorld;
+}
+
+void ButiBullet::RigidBody::SetCollisionGroupMask(uint32_t arg_groupMask)
+{
+    std::lock_guard lock(mtx_param);
+    groupMask = arg_groupMask;
+    modifiedFlags |= Modified_ReaddToWorld;
 }
 
 float ButiBullet::RigidBody::GetMass() const
@@ -133,13 +221,6 @@ float ButiBullet::RigidBody::GetScale() const
 {
     return scale;
 }
-
-void ButiBullet::RigidBody::SetVelocity(const ButiEngine::Vector3& arg_velocity)
-{
-    linearVelocity = arg_velocity;
-    modifiedFlags |= Modified_LinearVelocity;
-}
-
 ButiEngine::Vector3 ButiBullet::RigidBody::GetVelocity() const
 {
     if (!p_btRigidBody) {
@@ -149,73 +230,6 @@ ButiEngine::Vector3 ButiBullet::RigidBody::GetVelocity() const
         return PhysicsDetail::BulletUtil::btVector3ToVector3(p_btRigidBody->getLinearVelocity());
     }
 }
-
-void ButiBullet::RigidBody::SetAngularVelocity(const ButiEngine::Vector3& arg_velocity)
-{
-    angularVelocity = arg_velocity;
-    modifiedFlags |= Modified_AngularVelocity;
-}
-
-void ButiBullet::RigidBody::SetLinearLimits(ButiEngine:: Flags<RigidBodyLimitFlags> arg_flags)
-{
-    flg_linearLimits = arg_flags;
-    modifiedFlags |= Modified_LimittFlags;
-}
-
-void ButiBullet::RigidBody::SetAngularLimits(ButiEngine::Flags<RigidBodyLimitFlags> arg_flags)
-{
-    flg_angularLimits = arg_flags;
-    modifiedFlags |= Modified_LimittFlags;
-}
-
-void ButiBullet::RigidBody::SetLinearDamping(const float arg_damping)
-{
-    linearDamping = arg_damping;
-    modifiedFlags |= Modified_UniformParams;
-}
-
-void ButiBullet::RigidBody::SetAngularDamping(const float arg_damping)
-{
-    angularDamping = arg_damping;
-    modifiedFlags |= Modified_UniformParams;
-}
-
-void ButiBullet::RigidBody::SetFriction(const float arg_friction)
-{
-    friction = friction;
-    modifiedFlags |= Modified_UniformParams;
-}
-
-void ButiBullet::RigidBody::SetRestitution(const float arg_restitution)
-{
-    restitution = arg_restitution;
-    modifiedFlags |= Modified_UniformParams;
-}
-
-void ButiBullet::RigidBody::SetIsKinematic(const bool arg_enabled)
-{
-    isKinematicObject = arg_enabled;
-    modifiedFlags |= Modified_ReaddToWorld;
-}
-
-void ButiBullet::RigidBody::SetIsAdditionalDamping(const bool arg_enabled)
-{
-    isAdditionalDamping= arg_enabled;
-    modifiedFlags |= Modified_ReaddToWorld;
-}
-
-void ButiBullet::RigidBody::SetCollisionGroup(const uint32_t arg_group)
-{
-    group = arg_group;
-    modifiedFlags |= Modified_ReaddToWorld;
-}
-
-void ButiBullet::RigidBody::SetCollisionGroupMask(uint32_t arg_groupMask)
-{
-    groupMask = arg_groupMask;
-    modifiedFlags |= Modified_ReaddToWorld;
-}
-
 uint32_t ButiBullet::RigidBody::GetCollisionGroup()
 {
     return group;
@@ -228,12 +242,14 @@ uint32_t ButiBullet::RigidBody::GetCollisionGroupMask()
 
 void ButiBullet::RigidBody::SetTransform(const ButiEngine::Matrix4x4& arg_transform)
 {
+    std::lock_guard lock(mtx_param);
     transform = arg_transform;
     modifiedFlags |= Modified_WorldTransform;
 }
 
 void ButiBullet::RigidBody::ApplyForce(const ButiEngine::Vector3& arg_force)
 {
+    std::lock_guard lock(mtx_param);
     appliedCenterForce += arg_force;
     modifiedFlags |= Modified_ApplyCenterForce;
     Activate();
@@ -247,6 +263,7 @@ void ButiBullet::RigidBody::ApplyForce(const ButiEngine::Vector3& arg_force, con
 
 void ButiBullet::RigidBody::ApplyImpulse(const ButiEngine::Vector3& arg_impulse)
 {
+    std::lock_guard lock(mtx_param);
     appliedCenterImpulse += arg_impulse;
     modifiedFlags |= Modified_ApplyCenterImpulse;
     Activate();
@@ -254,25 +271,27 @@ void ButiBullet::RigidBody::ApplyImpulse(const ButiEngine::Vector3& arg_impulse)
 
 void ButiBullet::RigidBody::ApplyImpulse(const ButiEngine::Vector3& arg_impulse, const ButiEngine::Vector3& arg_localPosition)
 {
-    // see btRigidBody::applyImpulse
     ApplyImpulse(arg_impulse);
     ApplyTorqueImpulse(arg_localPosition.GetCross( arg_impulse * GetLinearFactor()));
 }
 
 void ButiBullet::RigidBody::ApplyTorque(const ButiEngine::Vector3& arg_torque)
 {
+    std::lock_guard lock(mtx_param);
     appliedTorque += arg_torque;
     modifiedFlags |= Modified_ApplyCenterForce;
 }
 
 void ButiBullet::RigidBody::ApplyTorqueImpulse(const ButiEngine::Vector3& arg_torque)
 {
+    std::lock_guard lock(mtx_param);
     appliedTorqueImpulse += arg_torque;
     modifiedFlags |= Modified_ApplyTorqueImpulse;
 }
 
 void ButiBullet::RigidBody::ClearForces()
 {
+    std::lock_guard lock(mtx_param);
     modifiedFlags |= Modified_ClearForces;
     modifiedFlags &= ~Modified_ApplyCenterForce;
     modifiedFlags &= ~Modified_ApplyCenterImpulse;
@@ -287,12 +306,14 @@ void ButiBullet::RigidBody::ClearForces()
 
 void ButiBullet::RigidBody::AddCollisionShape(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape)
 {
+    std::lock_guard lock(mtx_param);
     p_btShapeManager.AddShape(arg_vlp_shape);
 }
 
 
 void ButiBullet::RigidBody::OnPrepareStepSimulation()
 {
+    std::lock_guard lock(mtx_param);
     PhysicsObject::OnPrepareStepSimulation();
 
 
@@ -400,6 +421,7 @@ void ButiBullet::RigidBody::OnPrepareStepSimulation()
 
 void ButiBullet::RigidBody::OnAfterStepSimulation()
 {
+    std::lock_guard lock(mtx_param);
     if (!isKinematicObject)
     {
         btTransform l_transform;
@@ -412,6 +434,7 @@ void ButiBullet::RigidBody::OnAfterStepSimulation()
 
 void ButiBullet::RigidBody::RemoveFromBtWorld()
 {
+    std::lock_guard lock(mtx_param);
     GetPhysicsWorld()->GetBtWorld()->removeRigidBody(p_btRigidBody);
     SetPhysicsWorld(nullptr);
 }

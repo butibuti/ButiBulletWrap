@@ -109,26 +109,32 @@ bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, co
 
 void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
 {
-    std::lock_guard lock(mtx_sim);
     UpdateObjectList();
-    for (auto& obj : list_vlp_physicsObject) {
-        obj->OnPrepareStepSimulation();
+    {
+        std::lock_guard lock(mtx_sim);
+        for (auto& obj : list_vlp_physicsObject) {
+            obj->OnPrepareStepSimulation();
+        }
     }
 
-    const float internalTimeUnit = 1.0f / 60.0f;
+    constexpr float internalTimeUnit = 1.0f / 60.0f;
 
+    constexpr float iteration = 2.0f;
 
+    {
+        std::lock_guard lock(mtx_sim);
+        p_btWorld->applyGravity();
+        p_btWorld->stepSimulation(arg_elapsedSeconds, 2, internalTimeUnit / iteration);
 
-
-    p_btWorld->applyGravity();
-    const float iteration = 2.0f;   
-    p_btWorld->stepSimulation(arg_elapsedSeconds, 2, internalTimeUnit / iteration);
+    }
 
 
     ProcessContactCommands();
-
-    for (auto& obj : list_vlp_physicsObject) {
-        obj->OnAfterStepSimulation();
+    {
+        std::lock_guard lock(mtx_sim);
+        for (auto& obj : list_vlp_physicsObject) {
+            obj->OnAfterStepSimulation();
+        }
     }
 }
 
@@ -152,6 +158,7 @@ void ButiBullet::PhysicsWorld::PostEndContact(ButiEngine::Value_ptr< PhysicsObje
 
 void ButiBullet::PhysicsWorld::ProcessContactCommands()
 {
+    std::lock_guard lock(mtx_sim);
     if (!vec_contactCommands.empty()) {
         for (auto command : vec_contactCommands) {
             switch (command.type)
@@ -254,6 +261,7 @@ void ButiBullet::PhysicsWorld::OnDispose(const bool arg_explicitDisposing)
 
 void ButiBullet::PhysicsWorld::UpdateObjectList()
 {
+    std::lock_guard lock(mtx_sim);
     // Delayed Add
     for (auto& obj : list_vlp_delayAddBodies) {
         list_vlp_physicsObject.Add(obj);

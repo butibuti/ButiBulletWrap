@@ -4,6 +4,7 @@
 #include "Common.h"
 #include "PhysicsObject.h"
 #include "CollisionShape.h"
+#include <mutex>
 
 namespace ButiBullet {
 
@@ -131,7 +132,7 @@ private:
 
     ButiEngine::Flags<RigidBodyLimitFlags> flg_linearLimits;
     ButiEngine::Flags<RigidBodyLimitFlags> flg_angularLimits;
-
+    std::mutex mtx_param;
     // UniformParams
     float linearDamping;
     float angularDamping;
