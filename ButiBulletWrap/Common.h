@@ -146,34 +146,6 @@ public:
     virtual uint32_t GetCollisionGroup()=0;
     virtual uint32_t GetCollisionGroupMask()=0;
 
-    //ButiScriptからのアクセス用のメソッド 全体をValue_ptrで統一したら解消
-    void ApplyForce_s(const ButiEngine::Vector3 arg_force) {
-        ApplyForce(arg_force);
-    }
-    //ButiScriptからのアクセス用のメソッド 全体をValue_ptrで統一したら解消
-    void ApplyTorque_s(const ButiEngine::Vector3 arg_torque) {
-        ApplyTorque(arg_torque);
-    }
-    //ButiScriptからのアクセス用のメソッド 全体をValue_ptrで統一したら解消
-    void ApplyImpulse_s(const ButiEngine::Vector3 arg_impulse) {
-        ApplyImpulse(arg_impulse);
-    }
-    //ButiScriptからのアクセス用のメソッド 全体をValue_ptrで統一したら解消
-    void ApplyTorqueImpulse_s(const ButiEngine::Vector3 arg_torque) {
-        ApplyTorqueImpulse(arg_torque);
-    }
-    //ButiScriptからのアクセス用のメソッド 全体をValue_ptrで統一したら解消
-    void SetPosition_s(const ButiEngine::Vector3 arg_pos) {
-        SetPosition(arg_pos);
-    }
-    //ButiScriptからのアクセス用のメソッド 全体をValue_ptrで統一したら解消
-    void SetAngularVelocity_s(const ButiEngine::Vector3 arg_velocity) {
-        SetAngularVelocity(arg_velocity);
-    }
-    //ButiScriptからのアクセス用のメソッド 全体をValue_ptrで統一したら解消
-    void SetVelocity_s(const ButiEngine::Vector3 arg_velocity) {
-        SetVelocity(arg_velocity);
-    }
 
 };
 }
