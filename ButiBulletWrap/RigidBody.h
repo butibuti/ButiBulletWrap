@@ -103,6 +103,7 @@ private:
         Modified_Mass = 0x0008,
         Modified_LimittFlags = 0x0040,
         Modified_Colliders = 0x0080,
+        Modified_WorldRotation = 0x0100,
         Modified_LinearVelocity = 0x1000,
         Modified_AngularVelocity = 0x2000,
         Modified_UniformParams = 0x4000,
@@ -121,6 +122,7 @@ private:
     PhysicsDetail::BtShapeManager p_btShapeManager;
 
     ButiEngine::Matrix4x4 transform;
+    ButiEngine::Matrix4x4 rotation;
 
 
     float mass;
