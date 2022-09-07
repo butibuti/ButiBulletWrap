@@ -1,0 +1,4 @@
+#ifndef  BUTIBULLET_GHOSTBODY_H
+#define BUTIBULLET_GHOSTBODY_H
+
+#endif

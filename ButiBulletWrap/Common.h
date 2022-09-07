@@ -44,6 +44,7 @@ class PhysicsWorld;
 class PhysicsObject;
 class Joint;
 class RigidBody;
+class TriggerBody;
 class ContactPoint;
 class CollisionShape;
 
@@ -143,10 +144,22 @@ public:
     virtual float GetAngularDamping()const =0;
     virtual float GetFriction()const =0;
     virtual float GetRestitution()const =0;
-    virtual uint32_t GetCollisionGroup()=0;
-    virtual uint32_t GetCollisionGroupMask()=0;
+    virtual uint32_t GetCollisionGroup()const=0;
+    virtual uint32_t GetCollisionGroupMask()const=0;
 
 
+};
+
+class ITriggerBody {
+public:
+    virtual void SetCollisionGroup(const uint32_t arg_group) = 0;
+    virtual void SetCollisionGroupMask(uint32_t arg_groupMask) = 0;
+    virtual void SetTransform(const ButiEngine::Matrix4x4& arg_transform) = 0;
+    virtual const ButiEngine::Matrix4x4& GetTransform() const = 0;
+    virtual const ButiEngine::Vector3& GetPosition()const = 0;
+    virtual void SetPosition(const ButiEngine::Vector3& arg_pos) = 0;
+    virtual uint32_t GetCollisionGroup()const = 0;
+    virtual uint32_t GetCollisionGroupMask() const= 0;
 };
 }
 #endif // !BUTIBULLET_COMMON_H

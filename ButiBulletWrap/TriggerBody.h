@@ -6,7 +6,7 @@
 
 namespace ButiBullet {
 
-class TriggerBody : public PhysicsObject
+class TriggerBody : public PhysicsObject,public ITriggerBody
 {
 public:
     BUTIBULLET_API static ButiEngine::Value_ptr<TriggerBody> Create(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape);
@@ -14,11 +14,11 @@ public:
     BUTIBULLET_API void AddCollisionShape(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape);
 
 
-    BUTIBULLET_API void SetTransform(const ButiEngine::Matrix4x4& arg_transform);
-    BUTIBULLET_API const ButiEngine::Matrix4x4& GetTransform() const { return transform; }
+    BUTIBULLET_API void SetTransform(const ButiEngine::Matrix4x4& arg_transform)override;
+    BUTIBULLET_API const ButiEngine::Matrix4x4& GetTransform() const override{ return transform; }
 
-    BUTIBULLET_API void SetCollisionGroup(const std::uint32_t arg_value);
-    BUTIBULLET_API void SetCollisionGroupMask(const std::uint32_t arg_value);
+    BUTIBULLET_API void SetCollisionGroup(const std::uint32_t arg_value) override;
+    BUTIBULLET_API void SetCollisionGroupMask(const std::uint32_t arg_value) override;
 
     BUTIBULLET_API void OnDispose(const bool arg_explicitDisposing) override;
     BUTIBULLET_API void OnPrepareStepSimulation() override;
@@ -28,8 +28,14 @@ public:
     BUTIBULLET_API void Initialize();
     BUTIBULLET_API void Initialize(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape);
 
+    inline const ButiEngine::Vector3& GetPosition()const override { return transform.GetPosition(); }
+    inline void SetPosition(const ButiEngine::Vector3& arg_pos) override { transform.SetPosition(arg_pos); Activate(); }
+    std::uint32_t GetCollisionGroup()const override { return group; }
+    std::uint32_t GetCollisionGroupMask()const override { return groupMask; }
+    void SetModifiedAll() { dirtyFlags = DirtyFlags_All; }
 private:
     void RemoveFromBtWorld() override;
+    void Activate();
 
     class LocalGhostObject;
 

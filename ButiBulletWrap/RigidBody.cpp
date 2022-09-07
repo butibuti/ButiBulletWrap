@@ -230,12 +230,12 @@ ButiEngine::Vector3 ButiBullet::RigidBody::GetVelocity() const
         return PhysicsDetail::BulletUtil::btVector3ToVector3(p_btRigidBody->getLinearVelocity());
     }
 }
-uint32_t ButiBullet::RigidBody::GetCollisionGroup()
+uint32_t ButiBullet::RigidBody::GetCollisionGroup()const
 {
     return group;
 }
 
-uint32_t ButiBullet::RigidBody::GetCollisionGroupMask()
+uint32_t ButiBullet::RigidBody::GetCollisionGroupMask()const
 {
     return groupMask;
 }

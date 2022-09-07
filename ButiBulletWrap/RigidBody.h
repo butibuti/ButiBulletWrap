@@ -56,8 +56,8 @@ public:
 
     BUTIBULLET_API void SetCollisionGroup(const uint32_t arg_group)override;
     BUTIBULLET_API void SetCollisionGroupMask(uint32_t arg_groupMask)override;
-    BUTIBULLET_API uint32_t GetCollisionGroup()override;
-    BUTIBULLET_API uint32_t GetCollisionGroupMask()override;
+    BUTIBULLET_API uint32_t GetCollisionGroup()const override;
+    BUTIBULLET_API uint32_t GetCollisionGroupMask()const override;
 
     BUTIBULLET_API void SetTransform(const ButiEngine::Matrix4x4& arg_transform)override;
     BUTIBULLET_API const ButiEngine::Matrix4x4& GetTransform() const { return transform; }

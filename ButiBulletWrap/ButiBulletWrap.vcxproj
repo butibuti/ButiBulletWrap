@@ -175,6 +175,7 @@
     <ClInclude Include="ButiBullet.h" />
     <ClInclude Include="CollisionShape.h" />
     <ClInclude Include="Common.h" />
+    <ClInclude Include="GhostBody.h" />
     <ClInclude Include="Joint.h" />
     <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="PhysicsObject.h" />
@@ -188,6 +189,7 @@
     <ClCompile Include="CollisionShape.cpp" />
     <ClCompile Include="Common.cpp" />
     <ClCompile Include="dllmain.cpp" />
+    <ClCompile Include="GhostBody.cpp" />
     <ClCompile Include="Joint.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="PhysicsObject.cpp" />

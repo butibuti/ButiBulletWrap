@@ -17,7 +17,7 @@ public:
 	ButiEngine::Value_ptr<TriggerBody> vlp_owner;
 
 	LocalGhostObject(ButiEngine::Value_ptr<TriggerBody> arg_vlp_owner)
-		: vlp_owner(vlp_owner)
+		: vlp_owner(arg_vlp_owner)
 	{}
 
 	virtual void addOverlappingObjectInternal(btBroadphaseProxy* otherProxy, btBroadphaseProxy* thisProxy = 0) override
@@ -170,13 +170,17 @@ void ButiBullet::TriggerBody::RemoveFromBtWorld()
 	}
 }
 
+void ButiBullet::TriggerBody::Activate()
+{
+	dirtyFlags |= DirtyFlags_All;
+}
+
 void ButiBullet::TriggerBody::CreateBtObject()
 {
 	DeleteBtObject();
 
 	assert(!shapeManager.IsEmpty());
-
-	p_btGhostObject = new LocalGhostObject(ButiEngine::dynamic_value_ptr_cast<TriggerBody>(value_from_this()) );
+	p_btGhostObject = new LocalGhostObject(ButiEngine::dynamic_value_ptr_cast<TriggerBody>(value_from_this()));
 	p_btGhostObject->setUserPointer(weakAddress());
 
 	// setCollisionShape() ÇÕ World Ç…í«â¡Ç∑ÇÈëOÇ…ïKê{
