@@ -182,7 +182,6 @@ void ButiBullet::PhysicsWorld::ProcessContactCommands()
     for (auto& obj : list_vlp_physicsObject) {
         for (auto& other : obj->GetContactBodies()) {
             obj->OnCollisionStay(other.lock().get(), nullptr);
-            other.lock()->OnCollisionStay(obj.get(), nullptr);
         }
     }
 }
