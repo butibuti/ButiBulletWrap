@@ -31,6 +31,15 @@ extern ContactStartedCallback gContactStartedCallback;
 extern ContactEndedCallback gContactEndedCallback;
 
 namespace ButiBullet {
+float g_speed=1.0f;
+void SetGlobalSpeed(const float arg_speed) {
+    g_speed = arg_speed;
+}
+float GetGlobalSpeed() {
+    return g_speed;
+}
+
+
 static void ContactStartedCallback(btPersistentManifold* const& manifold)
 {
     const auto* bodyA = static_cast<const btCollisionObject*>(manifold->getBody0());
@@ -117,14 +126,12 @@ void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
         }
     }
 
-    constexpr float internalTimeUnit = 1.0f / 60.0f;
-
-    constexpr float iteration = 2.0f;
+    constexpr float internalTimeUnit = 1.0f / 60.0f,iteration = 2.0f,iterationTimeUnit= internalTimeUnit / iteration;
 
     {
         std::lock_guard lock(mtx_sim);
         p_btWorld->applyGravity();
-        p_btWorld->stepSimulation(arg_elapsedSeconds, 2, internalTimeUnit / iteration);
+        p_btWorld->stepSimulation(arg_elapsedSeconds, 2, iterationTimeUnit*GetGlobalSpeed());
 
     }
 

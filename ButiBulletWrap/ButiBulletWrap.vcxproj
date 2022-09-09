@@ -187,7 +187,6 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="CollisionShape.cpp" />
-    <ClCompile Include="Common.cpp" />
     <ClCompile Include="dllmain.cpp" />
     <ClCompile Include="GhostBody.cpp" />
     <ClCompile Include="Joint.cpp" />

@@ -161,5 +161,9 @@ public:
     virtual uint32_t GetCollisionGroup()const = 0;
     virtual uint32_t GetCollisionGroupMask() const= 0;
 };
+
+BUTIBULLET_API void SetGlobalSpeed(const float arg_speed);
+BUTIBULLET_API float GetGlobalSpeed();
+
 }
 #endif // !BUTIBULLET_COMMON_H
