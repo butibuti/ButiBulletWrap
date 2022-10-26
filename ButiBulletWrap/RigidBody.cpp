@@ -314,7 +314,7 @@ void ButiBullet::RigidBody::AddCollisionShape(ButiEngine::Value_ptr<CollisionSha
 void ButiBullet::RigidBody::OnPrepareStepSimulation()
 {
     std::lock_guard lock(mtx_param);
-    PhysicsObject::OnPrepareStepSimulation();
+    //PhysicsObject::OnPrepareStepSimulation();
 
 
     if ((modifiedFlags & Modified_InitialUpdate) )
@@ -429,7 +429,7 @@ void ButiBullet::RigidBody::OnAfterStepSimulation()
         l_transform.getOpenGLMatrix(reinterpret_cast<btScalar*>( &transform));
     }
 
-    PhysicsObject::OnAfterStepSimulation();
+    //PhysicsObject::OnAfterStepSimulation();
 }
 
 void ButiBullet::RigidBody::RemoveFromBtWorld()

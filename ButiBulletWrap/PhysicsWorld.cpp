@@ -30,6 +30,7 @@
 extern ContactStartedCallback gContactStartedCallback;
 extern ContactEndedCallback gContactEndedCallback;
 
+constexpr float internalTimeUnit = 1.0f / 60.0f;
 namespace ButiBullet {
 float g_speed=1.0f;
 void SetGlobalSpeed(const float arg_speed) {
@@ -67,13 +68,17 @@ static void ContactEndedCallback(btPersistentManifold* const& manifold)
     }
 }
 }
-
+ButiBullet::PhysicsWorld::PhysicsWorld(const std::int32_t arg_iteration)
+{
+    m_iteration = arg_iteration;
+    m_iterationTimeUnit = internalTimeUnit/ static_cast<float>(arg_iteration);
+}
 
 void ButiBullet::PhysicsWorld::AddPhysicsObject(ButiEngine::Value_ptr< PhysicsObject> arg_vlp_physicsObject)
 {
     if (!arg_vlp_physicsObject) return;
     if (arg_vlp_physicsObject->GetPhysicsWorld()) return;
-    list_vlp_delayAddBodies.Add(arg_vlp_physicsObject);
+    m_list_vlp_delayAddBodies.Add(arg_vlp_physicsObject);
     arg_vlp_physicsObject->SetPhysicsWorld(value_from_this());
 }
 
@@ -81,7 +86,7 @@ void ButiBullet::PhysicsWorld::AddJoint(ButiEngine::Value_ptr< Joint> arg_vlp_jo
 {
     if (!arg_vlp_joint) return;
     if (arg_vlp_joint) return;
-    list_vlp_delayAddJoints.Add(arg_vlp_joint);
+    m_list_vlp_delayAddJoints.Add(arg_vlp_joint);
     arg_vlp_joint->vlp_world = value_from_this();
 }
 
@@ -104,7 +109,7 @@ bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, co
     btCollisionWorld::ClosestRayResultCallback callback(
         PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin),
         PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin + arg_direction * arg_maxDistance));
-    p_btWorld->rayTest(callback.m_rayFromWorld, callback.m_rayToWorld, callback);
+    m_p_btWorld->rayTest(callback.m_rayFromWorld, callback.m_rayToWorld, callback);
 
     if (arg_p_outResult && callback.hasHit()) {
         arg_p_outResult->physicsObject = reinterpret_cast<ButiEngine::Value_weak_ptr<PhysicsObject>*>(callback.m_collisionObject->getUserPointer())->lock().get();
@@ -120,26 +125,25 @@ void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
 {
     UpdateObjectList();
     {
-        std::lock_guard lock(mtx_sim);
-        for (auto& obj : list_vlp_physicsObject) {
+        std::lock_guard lock(m_mtx_sim);
+        for (auto& obj : m_list_vlp_physicsObject) {
             obj->OnPrepareStepSimulation();
         }
     }
 
-    constexpr float internalTimeUnit = 1.0f / 60.0f,iteration = 2.0f,iterationTimeUnit= internalTimeUnit / iteration;
 
     {
-        std::lock_guard lock(mtx_sim);
-        p_btWorld->applyGravity();
-        p_btWorld->stepSimulation(arg_elapsedSeconds, 2, iterationTimeUnit*GetGlobalSpeed());
+        std::lock_guard lock(m_mtx_sim);
+        m_p_btWorld->applyGravity();
+        m_p_btWorld->stepSimulation(arg_elapsedSeconds, m_iteration, m_iterationTimeUnit * GetGlobalSpeed());
 
     }
 
 
     ProcessContactCommands();
     {
-        std::lock_guard lock(mtx_sim);
-        for (auto& obj : list_vlp_physicsObject) {
+        std::lock_guard lock(m_mtx_sim);
+        for (auto& obj : m_list_vlp_physicsObject) {
             obj->OnAfterStepSimulation();
         }
     }
@@ -154,20 +158,20 @@ void ButiBullet::PhysicsWorld::PostBeginContact(ButiEngine::Value_ptr< PhysicsOb
 {
     if (!arg_vlp_self||!arg_vlp_other) return;
 
-    vec_contactCommands.push_back({ ContactCommandType::Begin, arg_vlp_self, arg_vlp_other });
+    m_list_contactCommands.push_back({ ContactCommandType::Begin, arg_vlp_self, arg_vlp_other });
 }
 
 void ButiBullet::PhysicsWorld::PostEndContact(ButiEngine::Value_ptr< PhysicsObject > arg_vlp_self, ButiEngine::Value_ptr< PhysicsObject > arg_vlp_other)
 {
     if (!arg_vlp_self || !arg_vlp_other) return;
-    vec_contactCommands.push_back({ ContactCommandType::End, arg_vlp_self, arg_vlp_other});
+    m_list_contactCommands.push_back({ ContactCommandType::End, arg_vlp_self, arg_vlp_other});
 }
 
 void ButiBullet::PhysicsWorld::ProcessContactCommands()
 {
-    std::lock_guard lock(mtx_sim);
-    if (!vec_contactCommands.empty()) {
-        for (auto command : vec_contactCommands) {
+    std::lock_guard lock(m_mtx_sim);
+    if (m_list_contactCommands.GetSize()) {
+        for (auto command : m_list_contactCommands) {
             switch (command.type)
             {
             case ContactCommandType::Begin:
@@ -183,10 +187,10 @@ void ButiBullet::PhysicsWorld::ProcessContactCommands()
                 break;
             }
         }
-        vec_contactCommands.clear();
+        m_list_contactCommands.Clear();
     }
 
-    for (auto& obj : list_vlp_physicsObject) {
+    for (auto& obj : m_list_vlp_physicsObject) {
         for (auto& other : obj->GetContactBodies()) {
             obj->OnCollisionStay(other.lock().get(), nullptr);
         }
@@ -216,32 +220,32 @@ void ButiBullet::PhysicsWorld::Initialize()
     btDefaultCollisionConstructionInfo defaultCollisionConstructionInfo;
 
     // ソフトボディ使うとき
-    p_btCollisionConfig = new btSoftBodyRigidBodyCollisionConfiguration();
+    m_p_btCollisionConfig = new btSoftBodyRigidBodyCollisionConfiguration();
 
-    p_btCollisionDispatcher = new btCollisionDispatcher(p_btCollisionConfig);
+    m_p_btCollisionDispatcher = new btCollisionDispatcher(m_p_btCollisionConfig);
 
-    p_btBroadphase = new btDbvtBroadphase();
+    m_p_btBroadphase = new btDbvtBroadphase();
 
-    p_btSolver = new btSequentialImpulseConstraintSolver();
+    m_p_btSolver = new btSequentialImpulseConstraintSolver();
 
-    p_btWorld = new btSoftRigidDynamicsWorld(p_btCollisionDispatcher, p_btBroadphase, p_btSolver, p_btCollisionConfig, nullptr);
+    m_p_btWorld = new btSoftRigidDynamicsWorld(m_p_btCollisionDispatcher, m_p_btBroadphase, m_p_btSolver, m_p_btCollisionConfig, nullptr);
 
-    p_btWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
-
-
-    p_btGhostPairCallback = new btGhostPairCallback();
-    p_btWorld->getPairCache()->setInternalGhostPairCallback(p_btGhostPairCallback);
+    m_p_btWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
 
 
-    p_softBodyWorldInfo = new btSoftBodyWorldInfo();
-    p_softBodyWorldInfo->air_density = 1.2f;
-    p_softBodyWorldInfo->water_density = 0;
-    p_softBodyWorldInfo->water_offset = 0;
-    p_softBodyWorldInfo->water_normal = btVector3(0.0f, 0.0f, 0.0f);
-    p_softBodyWorldInfo->m_gravity = p_btWorld->getGravity();
-    p_softBodyWorldInfo->m_broadphase = p_btBroadphase;
-    p_softBodyWorldInfo->m_dispatcher = p_btCollisionDispatcher;
-    p_softBodyWorldInfo->m_sparsesdf.Initialize();
+    m_p_btGhostPairCallback = new btGhostPairCallback();
+    m_p_btWorld->getPairCache()->setInternalGhostPairCallback(m_p_btGhostPairCallback);
+
+
+    m_p_softBodyWorldInfo = new btSoftBodyWorldInfo();
+    m_p_softBodyWorldInfo->air_density = 1.2f;
+    m_p_softBodyWorldInfo->water_density = 0;
+    m_p_softBodyWorldInfo->water_offset = 0;
+    m_p_softBodyWorldInfo->water_normal = btVector3(0.0f, 0.0f, 0.0f);
+    m_p_softBodyWorldInfo->m_gravity = m_p_btWorld->getGravity();
+    m_p_softBodyWorldInfo->m_broadphase = m_p_btBroadphase;
+    m_p_softBodyWorldInfo->m_dispatcher = m_p_btCollisionDispatcher;
+    m_p_softBodyWorldInfo->m_sparsesdf.Initialize();
     gContactStartedCallback = ContactStartedCallback;
     gContactEndedCallback = ContactEndedCallback;
 
@@ -249,49 +253,49 @@ void ButiBullet::PhysicsWorld::Initialize()
 
 void ButiBullet::PhysicsWorld::OnDispose(const bool arg_explicitDisposing)
 {
-    for (auto& obj : list_vlp_delayAddBodies) obj->removing = true;
-    for (auto& obj : list_vlp_delayAddJoints) obj->removing = true;
-    for (auto& obj : list_vlp_physicsObject) obj->removing = true;
-    for (auto& obj : list_vlp_joint) obj->removing = true;
+    for (auto& obj : m_list_vlp_delayAddBodies) obj->removing = true;
+    for (auto& obj : m_list_vlp_delayAddJoints) obj->removing = true;
+    for (auto& obj : m_list_vlp_physicsObject) obj->removing = true;
+    for (auto& obj : m_list_vlp_joint) obj->removing = true;
     UpdateObjectList();
 
-    delete (p_softBodyWorldInfo);
-    delete (p_btGhostPairCallback);
-    delete (p_btWorld);
-    delete (p_btSolver);
-    delete (p_btBroadphase);
-    delete (p_btCollisionDispatcher);
-    delete (p_btCollisionConfig);
+    delete (m_p_softBodyWorldInfo);
+    delete (m_p_btGhostPairCallback);
+    delete (m_p_btWorld);
+    delete (m_p_btSolver);
+    delete (m_p_btBroadphase);
+    delete (m_p_btCollisionDispatcher);
+    delete (m_p_btCollisionConfig);
 
 }
 
 void ButiBullet::PhysicsWorld::UpdateObjectList()
 {
-    std::lock_guard lock(mtx_sim);
+    std::lock_guard lock(m_mtx_sim);
     // Delayed Add
-    for (auto& obj : list_vlp_delayAddBodies) {
-        list_vlp_physicsObject.Add(obj);
+    for (auto& obj : m_list_vlp_delayAddBodies) {
+        m_list_vlp_physicsObject.Add(obj);
     }
-    for (auto& obj : list_vlp_delayAddJoints) {
-        list_vlp_joint.Add(obj);
+    for (auto& obj : m_list_vlp_delayAddJoints) {
+        m_list_vlp_joint.Add(obj);
     }
-    list_vlp_delayAddBodies.Clear();
-    list_vlp_delayAddJoints.Clear();
+    m_list_vlp_delayAddBodies.Clear();
+    m_list_vlp_delayAddJoints.Clear();
 
-    for (std::int32_t i = list_vlp_physicsObject.GetSize() - 1; i >= 0; i--) {
-        auto& obj = list_vlp_physicsObject[i];
+    for (std::int32_t i = m_list_vlp_physicsObject.GetSize() - 1; i >= 0; i--) {
+        auto& obj = m_list_vlp_physicsObject[i];
         if (obj->removing) {
             obj->RemoveFromBtWorld();
             obj->removing = false;
-            list_vlp_physicsObject.RemoveAt(i);
+            m_list_vlp_physicsObject.RemoveAt(i);
         }
     }
-    for (std::int32_t i = list_vlp_joint.GetSize() - 1; i >= 0; i--) {
-        auto& obj = list_vlp_joint[i];
+    for (std::int32_t i = m_list_vlp_joint.GetSize() - 1; i >= 0; i--) {
+        auto& obj = m_list_vlp_joint[i];
         if (obj->removing) {
             obj->RemoveFromBtWorld();
             obj->removing = false;
-            list_vlp_joint.RemoveAt(i);
+            m_list_vlp_joint.RemoveAt(i);
         }
     }
 }
@@ -301,7 +305,7 @@ void ButiBullet::PhysicsWorld::AddObjectInternal(PhysicsObject* arg_p_obj)
     switch (arg_p_obj->GetPhysicsObjectType())
     {
     case PhysicsObjectType::RigidBody:
-        p_btWorld->addRigidBody(reinterpret_cast<RigidBody*>(arg_p_obj)->GetBody());
+        m_p_btWorld->addRigidBody(reinterpret_cast<RigidBody*>(arg_p_obj)->GetBody());
         break;
     default:
 
@@ -316,95 +320,95 @@ ButiEngine::Value_ptr<ButiBullet::SpringJoint> ButiBullet::SpringJoint::Create()
 
 void ButiBullet::SpringJoint::SetBodyA(ButiEngine::Value_ptr<RigidBody> arg_p_body, const ButiEngine::Matrix4x4& arg_localJunctionPoint)
 {
-    vlp_bodyA = arg_p_body;
-    localJunctionPointA = arg_localJunctionPoint;
+    m_vlp_bodyA = arg_p_body;
+    m_localJunctionPointA = arg_localJunctionPoint;
 }
 
 void ButiBullet::SpringJoint::SetBodyB(ButiEngine::Value_ptr<RigidBody> arg_p_body, const ButiEngine::Matrix4x4& arg_localJunctionPoint)
 {
-    vlp_bodyB = arg_p_body;
-    localJunctionPointB = arg_localJunctionPoint;
+    m_vlp_bodyB = arg_p_body;
+    m_localJunctionPointB = arg_localJunctionPoint;
 }
 
 void ButiBullet::SpringJoint::SetLinearLowerLimit(const ButiEngine::Vector3& arg_linearLower)
 {
-    linearLowerLimit = arg_linearLower;
+    m_linearLowerLimit = arg_linearLower;
 }
 
 void ButiBullet::SpringJoint::SetLinearUpperLimit(const ButiEngine::Vector3& arg_linearUpper)
 {
-    linearUpperLimit = arg_linearUpper;
+    m_linearUpperLimit = arg_linearUpper;
 }
 
 void ButiBullet::SpringJoint::SetAngularLowerLimit(const ButiEngine::Vector3& arg_angularLower)
 {
-    angularLowerLimit = arg_angularLower;
+    m_angularLowerLimit = arg_angularLower;
 }
 
 void ButiBullet::SpringJoint::SetAngularUpperLimit(const ButiEngine::Vector3& arg_angularUpper)
 {
-    angularUpperLimit = arg_angularUpper;
+    m_angularUpperLimit = arg_angularUpper;
 }
 
 void ButiBullet::SpringJoint::SetLinearStiffness(const ButiEngine::Vector3& arg_value)
 {
-    linearStiffness = arg_value;
+    m_linearStiffness = arg_value;
 }
 
 void ButiBullet::SpringJoint::SetAngularStiffness(const ButiEngine::Vector3& arg_value)
 {
-    angularStiffness = arg_value;
+    m_angularStiffness = arg_value;
 }
 
 void ButiBullet::SpringJoint::OnDispose(const bool arg_explicitDisposing)
 {
-    delete p_btDofSpringConstraint;
+    delete m_p_btDofSpringConstraint;
 }
 
 void ButiBullet::SpringJoint::OnPrepareStepSimulation()
 {
-    if (!vlp_bodyA || vlp_bodyB) return;
+    if (!m_vlp_bodyA || m_vlp_bodyB) return;
 
-    if (!p_btDofSpringConstraint)
+    if (!m_p_btDofSpringConstraint)
     {
-        p_btDofSpringConstraint = new btGeneric6DofSpringConstraint(
-            *vlp_bodyA->GetBody(), *vlp_bodyB->GetBody(),
-            PhysicsDetail::BulletUtil::Matrix4x4ToBtTransform(localJunctionPointA),
-            PhysicsDetail::BulletUtil::Matrix4x4ToBtTransform(localJunctionPointB),
+        m_p_btDofSpringConstraint = new btGeneric6DofSpringConstraint(
+            *m_vlp_bodyA->GetBody(), *m_vlp_bodyB->GetBody(),
+            PhysicsDetail::BulletUtil::Matrix4x4ToBtTransform(m_localJunctionPointA),
+            PhysicsDetail::BulletUtil::Matrix4x4ToBtTransform(m_localJunctionPointB),
             true);
 
-        p_btDofSpringConstraint->setLinearLowerLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(linearLowerLimit.GetMin(linearUpperLimit)));
-        p_btDofSpringConstraint->setLinearUpperLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(linearLowerLimit.GetMax(linearUpperLimit)));
+        m_p_btDofSpringConstraint->setLinearLowerLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_linearLowerLimit.GetMin(m_linearUpperLimit)));
+        m_p_btDofSpringConstraint->setLinearUpperLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_linearLowerLimit.GetMax(m_linearUpperLimit)));
 
-        p_btDofSpringConstraint->setAngularLowerLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(angularLowerLimit.GetMin(angularUpperLimit)));
-        p_btDofSpringConstraint->setAngularUpperLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(angularLowerLimit.GetMax(angularUpperLimit)));
+        m_p_btDofSpringConstraint->setAngularLowerLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_angularLowerLimit.GetMin(m_angularUpperLimit)));
+        m_p_btDofSpringConstraint->setAngularUpperLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_angularLowerLimit.GetMax(m_angularUpperLimit)));
 
-        if (linearStiffness.x != 0.0f)
+        if (m_linearStiffness.x != 0.0f)
         {
-            p_btDofSpringConstraint->enableSpring(0, true);
-            p_btDofSpringConstraint->setStiffness(0, linearStiffness.x);
+            m_p_btDofSpringConstraint->enableSpring(0, true);
+            m_p_btDofSpringConstraint->setStiffness(0, m_linearStiffness.x);
         }
 
-        if (linearStiffness.y != 0.0f)
+        if (m_linearStiffness.y != 0.0f)
         {
-            p_btDofSpringConstraint->enableSpring(1, true);
-            p_btDofSpringConstraint->setStiffness(1, linearStiffness.y);
+            m_p_btDofSpringConstraint->enableSpring(1, true);
+            m_p_btDofSpringConstraint->setStiffness(1, m_linearStiffness.y);
         }
 
-        if (linearStiffness.z != 0.0f)
+        if (m_linearStiffness.z != 0.0f)
         {
-            p_btDofSpringConstraint->enableSpring(2, true);
-            p_btDofSpringConstraint->setStiffness(2, linearStiffness.z);
+            m_p_btDofSpringConstraint->enableSpring(2, true);
+            m_p_btDofSpringConstraint->setStiffness(2, m_linearStiffness.z);
         }
 
-        p_btDofSpringConstraint->enableSpring(3, true);	p_btDofSpringConstraint->setStiffness(3, angularStiffness.x);
-        p_btDofSpringConstraint->enableSpring(4, true);	p_btDofSpringConstraint->setStiffness(4, angularStiffness.y);
-        p_btDofSpringConstraint->enableSpring(5, true);	p_btDofSpringConstraint->setStiffness(5, angularStiffness.z);
+        m_p_btDofSpringConstraint->enableSpring(3, true);	m_p_btDofSpringConstraint->setStiffness(3, m_angularStiffness.x);
+        m_p_btDofSpringConstraint->enableSpring(4, true);	m_p_btDofSpringConstraint->setStiffness(4, m_angularStiffness.y);
+        m_p_btDofSpringConstraint->enableSpring(5, true);	m_p_btDofSpringConstraint->setStiffness(5, m_angularStiffness.z);
 
-        p_btDofSpringConstraint->setEquilibriumPoint();
+        m_p_btDofSpringConstraint->setEquilibriumPoint();
 
-        if (p_btDofSpringConstraint) {
-            GetPhysicsWorld()->GetBtWorld()->addConstraint(p_btDofSpringConstraint);
+        if (m_p_btDofSpringConstraint) {
+            GetPhysicsWorld()->GetBtWorld()->addConstraint(m_p_btDofSpringConstraint);
         }
     }
 
@@ -416,7 +420,7 @@ void ButiBullet::SpringJoint::OnAfterStepSimulation()
 
 ButiBullet::SpringJoint::SpringJoint()
     : PhysicsObject(PhysicsObjectType::Joint)
-    , p_btDofSpringConstraint(nullptr)
+    , m_p_btDofSpringConstraint(nullptr)
 {
 }
 

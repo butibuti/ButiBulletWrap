@@ -24,8 +24,7 @@ struct PhysicsRaycastResult
 class PhysicsWorld:public ButiEngine::enable_value_from_this<PhysicsWorld>
 {
 public:
-    PhysicsWorld(){}
-    PhysicsWorld(const PhysicsWorld& arg_other){}
+    BUTIBULLET_API PhysicsWorld(const std::int32_t arg_iteration=1);
     BUTIBULLET_API virtual ~PhysicsWorld();
 
     BUTIBULLET_API void AddPhysicsObject(ButiEngine::Value_ptr< PhysicsObject >arg_vlp_physicsObject);
@@ -38,8 +37,8 @@ public:
     BUTIBULLET_API bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction,const float arg_maxDistance,const std::uint32_t arg_layerMask, PhysicsRaycastResult* arg_p_outResult = nullptr) { return Raycast(arg_origin, arg_direction, arg_maxDistance, arg_layerMask, false, arg_p_outResult); }
 
 
-    btSoftRigidDynamicsWorld* GetBtWorld() { return p_btWorld; }
-    btSoftBodyWorldInfo* GetSoftBodyWorldInfo() const { return p_softBodyWorldInfo; }
+    btSoftRigidDynamicsWorld* GetBtWorld() { return m_p_btWorld; }
+    btSoftBodyWorldInfo* GetSoftBodyWorldInfo() const { return m_p_softBodyWorldInfo; }
     BUTIBULLET_API void StepSimulation(const float arg_elapsedSeconds);
     BUTIBULLET_API void RenderDebug(RenderingContext* arg_p_context);
 
@@ -68,22 +67,25 @@ private:
         ButiEngine::Value_ptr<PhysicsObject> other;
     };
 
-    btDefaultCollisionConfiguration* p_btCollisionConfig=nullptr;
-    btCollisionDispatcher* p_btCollisionDispatcher = nullptr;
-    btDbvtBroadphase* p_btBroadphase = nullptr;
-    btSequentialImpulseConstraintSolver* p_btSolver = nullptr;
-    btSoftRigidDynamicsWorld* p_btWorld = nullptr;
-    btGhostPairCallback* p_btGhostPairCallback = nullptr;
-    btSoftBodyWorldInfo* p_softBodyWorldInfo = nullptr;
-    std::mutex mtx_sim;
+    btDefaultCollisionConfiguration* m_p_btCollisionConfig=nullptr;
+    btCollisionDispatcher* m_p_btCollisionDispatcher = nullptr;
+    btDbvtBroadphase* m_p_btBroadphase = nullptr;
+    btSequentialImpulseConstraintSolver* m_p_btSolver = nullptr;
+    btSoftRigidDynamicsWorld* m_p_btWorld = nullptr;
+    btGhostPairCallback* m_p_btGhostPairCallback = nullptr;
+    btSoftBodyWorldInfo* m_p_softBodyWorldInfo = nullptr;
+    std::mutex m_mtx_sim;
 
 
-    ButiEngine::List<ButiEngine::Value_ptr<PhysicsObject>> list_vlp_delayAddBodies;
-    ButiEngine::List<ButiEngine::Value_ptr<Joint>> list_vlp_delayAddJoints;
-    ButiEngine::List<ButiEngine::Value_ptr<PhysicsObject>> list_vlp_physicsObject;
-    ButiEngine::List<ButiEngine::Value_ptr<Joint>> list_vlp_joint;
+    ButiEngine::List<ButiEngine::Value_ptr<PhysicsObject>> m_list_vlp_delayAddBodies;
+    ButiEngine::List<ButiEngine::Value_ptr<Joint>> m_list_vlp_delayAddJoints;
+    ButiEngine::List<ButiEngine::Value_ptr<PhysicsObject>> m_list_vlp_physicsObject;
+    ButiEngine::List<ButiEngine::Value_ptr<Joint>> m_list_vlp_joint;
 
-    std::vector<ContactCommand> vec_contactCommands;
+    ButiEngine::List<ContactCommand> m_list_contactCommands;
+
+    std::int32_t m_iteration;
+    float m_iterationTimeUnit;
 };
 
 
@@ -112,18 +114,18 @@ public:
 private:
     void RemoveFromBtWorld() override;
 
-    btGeneric6DofSpringConstraint* p_btDofSpringConstraint;
-    ButiEngine::Value_ptr<RigidBody> vlp_bodyA;
-    ButiEngine::Value_ptr<RigidBody> vlp_bodyB;
-    ButiEngine::Matrix4x4 localJunctionPointA;
-    ButiEngine::Matrix4x4 localJunctionPointB;
+    btGeneric6DofSpringConstraint* m_p_btDofSpringConstraint;
+    ButiEngine::Value_ptr<RigidBody> m_vlp_bodyA;
+    ButiEngine::Value_ptr<RigidBody> m_vlp_bodyB;
+    ButiEngine::Matrix4x4 m_localJunctionPointA;
+    ButiEngine::Matrix4x4 m_localJunctionPointB;
 
-    ButiEngine::Vector3 linearLowerLimit;
-    ButiEngine::Vector3 linearUpperLimit;
-    ButiEngine::Vector3 angularLowerLimit;
-    ButiEngine::Vector3 angularUpperLimit;
-    ButiEngine::Vector3 linearStiffness;
-    ButiEngine::Vector3 angularStiffness;
+    ButiEngine::Vector3 m_linearLowerLimit;
+    ButiEngine::Vector3 m_linearUpperLimit;
+    ButiEngine::Vector3 m_angularLowerLimit;
+    ButiEngine::Vector3 m_angularUpperLimit;
+    ButiEngine::Vector3 m_linearStiffness;
+    ButiEngine::Vector3 m_angularStiffness;
 };
 
 }
