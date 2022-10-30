@@ -99,7 +99,7 @@ void ButiBullet::PhysicsWorld::RemovePhysicsObject(ButiEngine::Value_ptr< Physic
 
 void ButiBullet::PhysicsWorld::RemoveJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint)
 {
-    if (arg_vlp_joint) return;
+    if (!arg_vlp_joint) return;
     if (arg_vlp_joint->GetPhysicsWorld()!= value_from_this()) return;
     arg_vlp_joint->SetIsRemoving(true);
 }
