@@ -82,12 +82,12 @@ void ButiBullet::PhysicsWorld::AddPhysicsObject(ButiEngine::Value_ptr< PhysicsOb
     arg_vlp_physicsObject->SetPhysicsWorld(value_from_this());
 }
 
-void ButiBullet::PhysicsWorld::AddJoint(ButiEngine::Value_ptr< Joint> arg_vlp_joint)
+void ButiBullet::PhysicsWorld::AddJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint)
 {
     if (!arg_vlp_joint) return;
-    if (arg_vlp_joint) return;
+    if (arg_vlp_joint->GetPhysicsWorld()) return;
     m_list_vlp_delayAddJoints.Add(arg_vlp_joint);
-    arg_vlp_joint->vlp_world = value_from_this();
+    arg_vlp_joint->SetPhysicsWorld( value_from_this());
 }
 
 void ButiBullet::PhysicsWorld::RemovePhysicsObject(ButiEngine::Value_ptr< PhysicsObject> arg_vlp_physicsObject)
@@ -97,11 +97,11 @@ void ButiBullet::PhysicsWorld::RemovePhysicsObject(ButiEngine::Value_ptr< Physic
     arg_vlp_physicsObject->removing = true;
 }
 
-void ButiBullet::PhysicsWorld::RemoveJoint(ButiEngine::Value_ptr< Joint> arg_vlp_joint)
+void ButiBullet::PhysicsWorld::RemoveJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint)
 {
     if (arg_vlp_joint) return;
     if (arg_vlp_joint->GetPhysicsWorld()!= value_from_this()) return;
-    arg_vlp_joint->removing = true;
+    arg_vlp_joint->SetIsRemoving(true);
 }
 
 bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_layerMask, const bool arg_queryTrigger, PhysicsRaycastResult* arg_p_outResult)
@@ -128,6 +128,9 @@ void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
         std::lock_guard lock(m_mtx_sim);
         for (auto& obj : m_list_vlp_physicsObject) {
             obj->OnPrepareStepSimulation();
+        }
+        for (auto& joint : m_list_vlp_joint) {
+            joint->OnPrepareStepSimulation();
         }
     }
 
@@ -254,9 +257,9 @@ void ButiBullet::PhysicsWorld::Initialize()
 void ButiBullet::PhysicsWorld::OnDispose(const bool arg_explicitDisposing)
 {
     for (auto& obj : m_list_vlp_delayAddBodies) obj->removing = true;
-    for (auto& obj : m_list_vlp_delayAddJoints) obj->removing = true;
+    for (auto& obj : m_list_vlp_delayAddJoints) obj->SetIsRemoving( true);
     for (auto& obj : m_list_vlp_physicsObject) obj->removing = true;
-    for (auto& obj : m_list_vlp_joint) obj->removing = true;
+    for (auto& obj : m_list_vlp_joint) obj->SetIsRemoving(true);
     UpdateObjectList();
 
     delete (m_p_softBodyWorldInfo);
@@ -276,8 +279,8 @@ void ButiBullet::PhysicsWorld::UpdateObjectList()
     for (auto& obj : m_list_vlp_delayAddBodies) {
         m_list_vlp_physicsObject.Add(obj);
     }
-    for (auto& obj : m_list_vlp_delayAddJoints) {
-        m_list_vlp_joint.Add(obj);
+    for (auto& joint : m_list_vlp_delayAddJoints) {
+        m_list_vlp_joint.Add(joint);
     }
     m_list_vlp_delayAddBodies.Clear();
     m_list_vlp_delayAddJoints.Clear();
@@ -291,10 +294,10 @@ void ButiBullet::PhysicsWorld::UpdateObjectList()
         }
     }
     for (std::int32_t i = m_list_vlp_joint.GetSize() - 1; i >= 0; i--) {
-        auto& obj = m_list_vlp_joint[i];
-        if (obj->removing) {
-            obj->RemoveFromBtWorld();
-            obj->removing = false;
+        auto& joint = m_list_vlp_joint[i];
+        if (joint->GetIsRemoving()) {
+            joint->RemoveFromBtWorld();
+            joint->SetIsRemoving(false);
             m_list_vlp_joint.RemoveAt(i);
         }
     }
@@ -313,121 +316,3 @@ void ButiBullet::PhysicsWorld::AddObjectInternal(PhysicsObject* arg_p_obj)
     }
 }
 
-ButiEngine::Value_ptr<ButiBullet::SpringJoint> ButiBullet::SpringJoint::Create()
-{
-    return ButiEngine::make_value<SpringJoint>();
-}
-
-void ButiBullet::SpringJoint::SetBodyA(ButiEngine::Value_ptr<RigidBody> arg_p_body, const ButiEngine::Matrix4x4& arg_localJunctionPoint)
-{
-    m_vlp_bodyA = arg_p_body;
-    m_localJunctionPointA = arg_localJunctionPoint;
-}
-
-void ButiBullet::SpringJoint::SetBodyB(ButiEngine::Value_ptr<RigidBody> arg_p_body, const ButiEngine::Matrix4x4& arg_localJunctionPoint)
-{
-    m_vlp_bodyB = arg_p_body;
-    m_localJunctionPointB = arg_localJunctionPoint;
-}
-
-void ButiBullet::SpringJoint::SetLinearLowerLimit(const ButiEngine::Vector3& arg_linearLower)
-{
-    m_linearLowerLimit = arg_linearLower;
-}
-
-void ButiBullet::SpringJoint::SetLinearUpperLimit(const ButiEngine::Vector3& arg_linearUpper)
-{
-    m_linearUpperLimit = arg_linearUpper;
-}
-
-void ButiBullet::SpringJoint::SetAngularLowerLimit(const ButiEngine::Vector3& arg_angularLower)
-{
-    m_angularLowerLimit = arg_angularLower;
-}
-
-void ButiBullet::SpringJoint::SetAngularUpperLimit(const ButiEngine::Vector3& arg_angularUpper)
-{
-    m_angularUpperLimit = arg_angularUpper;
-}
-
-void ButiBullet::SpringJoint::SetLinearStiffness(const ButiEngine::Vector3& arg_value)
-{
-    m_linearStiffness = arg_value;
-}
-
-void ButiBullet::SpringJoint::SetAngularStiffness(const ButiEngine::Vector3& arg_value)
-{
-    m_angularStiffness = arg_value;
-}
-
-void ButiBullet::SpringJoint::OnDispose(const bool arg_explicitDisposing)
-{
-    delete m_p_btDofSpringConstraint;
-}
-
-void ButiBullet::SpringJoint::OnPrepareStepSimulation()
-{
-    if (!m_vlp_bodyA || m_vlp_bodyB) return;
-
-    if (!m_p_btDofSpringConstraint)
-    {
-        m_p_btDofSpringConstraint = new btGeneric6DofSpringConstraint(
-            *m_vlp_bodyA->GetBody(), *m_vlp_bodyB->GetBody(),
-            PhysicsDetail::BulletUtil::Matrix4x4ToBtTransform(m_localJunctionPointA),
-            PhysicsDetail::BulletUtil::Matrix4x4ToBtTransform(m_localJunctionPointB),
-            true);
-
-        m_p_btDofSpringConstraint->setLinearLowerLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_linearLowerLimit.GetMin(m_linearUpperLimit)));
-        m_p_btDofSpringConstraint->setLinearUpperLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_linearLowerLimit.GetMax(m_linearUpperLimit)));
-
-        m_p_btDofSpringConstraint->setAngularLowerLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_angularLowerLimit.GetMin(m_angularUpperLimit)));
-        m_p_btDofSpringConstraint->setAngularUpperLimit(PhysicsDetail::BulletUtil::Vector3ToBtVector3(m_angularLowerLimit.GetMax(m_angularUpperLimit)));
-
-        if (m_linearStiffness.x != 0.0f)
-        {
-            m_p_btDofSpringConstraint->enableSpring(0, true);
-            m_p_btDofSpringConstraint->setStiffness(0, m_linearStiffness.x);
-        }
-
-        if (m_linearStiffness.y != 0.0f)
-        {
-            m_p_btDofSpringConstraint->enableSpring(1, true);
-            m_p_btDofSpringConstraint->setStiffness(1, m_linearStiffness.y);
-        }
-
-        if (m_linearStiffness.z != 0.0f)
-        {
-            m_p_btDofSpringConstraint->enableSpring(2, true);
-            m_p_btDofSpringConstraint->setStiffness(2, m_linearStiffness.z);
-        }
-
-        m_p_btDofSpringConstraint->enableSpring(3, true);	m_p_btDofSpringConstraint->setStiffness(3, m_angularStiffness.x);
-        m_p_btDofSpringConstraint->enableSpring(4, true);	m_p_btDofSpringConstraint->setStiffness(4, m_angularStiffness.y);
-        m_p_btDofSpringConstraint->enableSpring(5, true);	m_p_btDofSpringConstraint->setStiffness(5, m_angularStiffness.z);
-
-        m_p_btDofSpringConstraint->setEquilibriumPoint();
-
-        if (m_p_btDofSpringConstraint) {
-            GetPhysicsWorld()->GetBtWorld()->addConstraint(m_p_btDofSpringConstraint);
-        }
-    }
-
-}
-
-void ButiBullet::SpringJoint::OnAfterStepSimulation()
-{
-}
-
-ButiBullet::SpringJoint::SpringJoint()
-    : PhysicsObject(PhysicsObjectType::Joint)
-    , m_p_btDofSpringConstraint(nullptr)
-{
-}
-
-void ButiBullet::SpringJoint::Initialize()
-{
-}
-
-void ButiBullet::SpringJoint::RemoveFromBtWorld()
-{
-}

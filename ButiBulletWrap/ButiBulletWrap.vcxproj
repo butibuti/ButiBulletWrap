@@ -140,7 +140,7 @@
       <AdditionalDependencies>LinearMath.lib;Bullet3Common.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;$(SolutionDir)\Libs\dll\Debug\ButiMemorySystem.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d "$(SolutionDir)Libs\dll\$(Configuration)" "$(SolutionDir)output\$(Configuration)"</Command>
+      <Command>xcopy /y /d "$(SolutionDir)Libs\dll\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)output\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -167,7 +167,7 @@
       <AdditionalDependencies>LinearMath.lib;Bullet3Common.lib;BulletCollision.lib;BulletDynamics.lib;BulletSoftBody.lib;$(SolutionDir)\Libs\dll\Release\ButiMemorySystem.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
     <PostBuildEvent>
-      <Command>xcopy /y /d "$(SolutionDir)Libs\dll\$(Configuration)" "$(SolutionDir)output\$(Configuration)"</Command>
+      <Command>xcopy /y /d "$(SolutionDir)Libs\dll\$(Configuration)\$(ProjectName).dll" "$(SolutionDir)output\$(Configuration)\"</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -175,7 +175,6 @@
     <ClInclude Include="ButiBullet.h" />
     <ClInclude Include="CollisionShape.h" />
     <ClInclude Include="Common.h" />
-    <ClInclude Include="GhostBody.h" />
     <ClInclude Include="Joint.h" />
     <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="PhysicsObject.h" />
@@ -188,7 +187,6 @@
   <ItemGroup>
     <ClCompile Include="CollisionShape.cpp" />
     <ClCompile Include="dllmain.cpp" />
-    <ClCompile Include="GhostBody.cpp" />
     <ClCompile Include="Joint.cpp" />
     <ClCompile Include="PhysicsManager.cpp" />
     <ClCompile Include="PhysicsObject.cpp" />

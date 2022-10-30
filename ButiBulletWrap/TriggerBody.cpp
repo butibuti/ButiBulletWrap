@@ -1,6 +1,6 @@
 #include"stdafx.h"
 #include<assert.h>
-#pragma warning(disable: 5033)	// disable warning in bullet headers
+#pragma warning(disable: 5033)
 #include "BulletCollision/CollisionDispatch/btGhostObject.h"
 #include "BulletSoftBody/btSoftRigidDynamicsWorld.h"
 #pragma warning(default : 5033)
@@ -34,7 +34,6 @@ public:
 			auto world = vlp_owner->GetPhysicsWorld();
 			world->PostBeginContact(vlp_owner, bodyB);
 
-			// RigidBody 自体は衝突検知機能を持たないので、TiggerBody 側から通知を送る
 			if (bodyB->GetPhysicsObjectType() == PhysicsObjectType::RigidBody) {
 				world->PostBeginContact(bodyB, vlp_owner);
 			}
@@ -56,7 +55,6 @@ public:
 			auto world = vlp_owner->GetPhysicsWorld();
 			world->PostEndContact(vlp_owner, bodyB);
 
-			// RigidBody 自体は衝突検知機能を持たないので、TiggerBody 側から通知を送る
 			if (bodyB->GetPhysicsObjectType() == PhysicsObjectType::RigidBody) {
 				world->PostEndContact(bodyB, vlp_owner);
 			}
@@ -112,15 +110,15 @@ void ButiBullet::TriggerBody::OnPrepareStepSimulation()
 
 	if (!p_btGhostObject || (dirtyFlags & (DirtyFlags_InitialUpdate))) {
 		CreateBtObject();
-		dirtyFlags &= ~DirtyFlags_Shapes;		// createBtObject() の中でまとめて処理されるため、↓で処理する必要はない
-		dirtyFlags &= ~DirtyFlags_Group;		// createBtObject() の中でまとめて処理されるため、↓で処理する必要はない
-		dirtyFlags &= ~DirtyFlags_Transform;	// createBtObject() の中でまとめて処理されるため、↓で処理する必要はない
+		dirtyFlags &= ~DirtyFlags_Shapes;	
+		dirtyFlags &= ~DirtyFlags_Group;	
+		dirtyFlags &= ~DirtyFlags_Transform;
 	}
 
 	if (dirtyFlags & DirtyFlags_Shapes) {
 		p_btGhostObject->setCollisionShape(shapeManager.GetBtCollisionShape());
 		ReaddToWorld();
-		dirtyFlags &= ~DirtyFlags_Group;	// readdToWorld() 処理済み
+		dirtyFlags &= ~DirtyFlags_Group;
 	}
 
 	if (dirtyFlags & DirtyFlags_Group) {
@@ -183,16 +181,10 @@ void ButiBullet::TriggerBody::CreateBtObject()
 	p_btGhostObject = new LocalGhostObject(ButiEngine::dynamic_value_ptr_cast<TriggerBody>(value_from_this()));
 	p_btGhostObject->setUserPointer(weakAddress());
 
-	// setCollisionShape() は World に追加する前に必須
 	p_btGhostObject->setCollisionShape(shapeManager.GetBtCollisionShape());
 
-	// btCollisionObject::CF_NO_CONTACT_RESPONSE が付加されると、
-	// 他のオブジェクトと物理シミュレーションで接触しないことを示す (すり抜ける)
 	p_btGhostObject->setCollisionFlags(p_btGhostObject->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
-	//m_btGhostObject->setWorldTransform(detail::BulletUtil::LNMatrixToBtTransform(mtmp));
-
-	// addCollisionObject() した瞬間に周囲のオブジェクトと衝突判定が行われるため、初期姿勢を addCollisionObject() の前に設定しておく必要がある。
 	btTransform btTransform;
 	btTransform.setFromOpenGLMatrix(reinterpret_cast<btScalar*>(&transform));
 	p_btGhostObject->setWorldTransform(btTransform);

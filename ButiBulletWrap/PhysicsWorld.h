@@ -28,10 +28,10 @@ public:
     BUTIBULLET_API virtual ~PhysicsWorld();
 
     BUTIBULLET_API void AddPhysicsObject(ButiEngine::Value_ptr< PhysicsObject >arg_vlp_physicsObject);
-    BUTIBULLET_API void AddJoint(ButiEngine::Value_ptr< Joint> arg_vlp_joint);
+    BUTIBULLET_API void AddJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint);
 
     BUTIBULLET_API void RemovePhysicsObject(ButiEngine::Value_ptr< PhysicsObject > arg_vlp_physicsObject);
-    BUTIBULLET_API void RemoveJoint(ButiEngine::Value_ptr< Joint> arg_vlp_joint);
+    BUTIBULLET_API void RemoveJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint);
 
     BUTIBULLET_API bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction,const float arg_maxDistance,const std::uint32_t arg_layerMask,const bool arg_queryTrigger , PhysicsRaycastResult* arg_p_outResult = nullptr);
     BUTIBULLET_API bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction,const float arg_maxDistance,const std::uint32_t arg_layerMask, PhysicsRaycastResult* arg_p_outResult = nullptr) { return Raycast(arg_origin, arg_direction, arg_maxDistance, arg_layerMask, false, arg_p_outResult); }
@@ -78,9 +78,9 @@ private:
 
 
     ButiEngine::List<ButiEngine::Value_ptr<PhysicsObject>> m_list_vlp_delayAddBodies;
-    ButiEngine::List<ButiEngine::Value_ptr<Joint>> m_list_vlp_delayAddJoints;
+    ButiEngine::List<ButiEngine::Value_ptr<IJoint>> m_list_vlp_delayAddJoints;
     ButiEngine::List<ButiEngine::Value_ptr<PhysicsObject>> m_list_vlp_physicsObject;
-    ButiEngine::List<ButiEngine::Value_ptr<Joint>> m_list_vlp_joint;
+    ButiEngine::List<ButiEngine::Value_ptr<IJoint>> m_list_vlp_joint;
 
     ButiEngine::List<ContactCommand> m_list_contactCommands;
 
@@ -89,44 +89,6 @@ private:
 };
 
 
-class SpringJoint: public PhysicsObject  
-{
-public:
-    BUTIBULLET_API static ButiEngine::Value_ptr<SpringJoint> Create();
-
-    BUTIBULLET_API void SetBodyA(ButiEngine::Value_ptr<RigidBody> arg_p_body, const ButiEngine::Matrix4x4& arg_localJunctionPoint);
-    BUTIBULLET_API void SetBodyB(ButiEngine::Value_ptr<RigidBody> arg_p_body, const ButiEngine::Matrix4x4& arg_localJunctionPoint);
-
-
-    BUTIBULLET_API void SetLinearLowerLimit(const ButiEngine::Vector3& arg_linearLower);
-    BUTIBULLET_API void SetLinearUpperLimit(const ButiEngine::Vector3& arg_linearUpper);
-    BUTIBULLET_API void SetAngularLowerLimit(const ButiEngine::Vector3& arg_angularLower);
-    BUTIBULLET_API void SetAngularUpperLimit(const ButiEngine::Vector3& arg_angularUpper);
-    BUTIBULLET_API void SetLinearStiffness(const ButiEngine::Vector3& arg_value);
-    BUTIBULLET_API void SetAngularStiffness(const ButiEngine::Vector3& arg_value);
-
-    BUTIBULLET_API void OnDispose(const bool arg_explicitDisposing) override;
-    BUTIBULLET_API void OnPrepareStepSimulation() override;
-    BUTIBULLET_API void OnAfterStepSimulation() override;
-
-    BUTIBULLET_API SpringJoint();
-    BUTIBULLET_API void Initialize();
-private:
-    void RemoveFromBtWorld() override;
-
-    btGeneric6DofSpringConstraint* m_p_btDofSpringConstraint;
-    ButiEngine::Value_ptr<RigidBody> m_vlp_bodyA;
-    ButiEngine::Value_ptr<RigidBody> m_vlp_bodyB;
-    ButiEngine::Matrix4x4 m_localJunctionPointA;
-    ButiEngine::Matrix4x4 m_localJunctionPointB;
-
-    ButiEngine::Vector3 m_linearLowerLimit;
-    ButiEngine::Vector3 m_linearUpperLimit;
-    ButiEngine::Vector3 m_angularLowerLimit;
-    ButiEngine::Vector3 m_angularUpperLimit;
-    ButiEngine::Vector3 m_linearStiffness;
-    ButiEngine::Vector3 m_angularStiffness;
-};
 
 }
 

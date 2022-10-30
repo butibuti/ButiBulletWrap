@@ -76,7 +76,7 @@ public:
     BUTIBULLET_API void AddCollisionShape(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape);
 
 
-    BUTIBULLET_API btRigidBody* GetBody() const { return p_btRigidBody; }
+    BUTIBULLET_API btRigidBody* GetBody() const override{ return p_btRigidBody; }
     void SetModifiedAll(){ modifiedFlags = Modified_All; }
 
 protected:
@@ -152,6 +152,7 @@ private:
 
     friend class PhysicsDetail::SynchronizeMotionState;
     friend class PhysicsWorld;
+    friend class Joint_P2P;
 };
 
 }

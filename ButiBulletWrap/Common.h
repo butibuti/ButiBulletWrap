@@ -42,11 +42,11 @@ namespace ButiBullet {
 
 class PhysicsWorld;
 class PhysicsObject;
-class Joint;
 class RigidBody;
 class TriggerBody;
 class ContactPoint;
 class CollisionShape;
+class Joint_spring;
 
 namespace PhysicsDetail {
 class IPhysicsObjectEventListener
@@ -147,7 +147,7 @@ public:
     virtual uint32_t GetCollisionGroup()const=0;
     virtual uint32_t GetCollisionGroupMask()const=0;
 
-
+    virtual  btRigidBody* GetBody() const = 0;
 };
 
 class ITriggerBody {
@@ -162,6 +162,24 @@ public:
     virtual uint32_t GetCollisionGroupMask() const= 0;
 };
 
+class IJoint {
+public:
+    virtual void SetIsRemoving(const bool arg_isRemove) = 0;
+    virtual bool GetIsRemoving() const= 0;
+    virtual ButiEngine::Value_ptr<PhysicsWorld>GetPhysicsWorld()const =0;
+    virtual void SetPhysicsWorld(ButiEngine::Value_ptr<PhysicsWorld> arg_world) = 0;
+    virtual void RemoveFromBtWorld() = 0;
+    virtual void OnPrepareStepSimulation() {};
+};
+
+BUTIBULLET_API ButiEngine::Value_ptr<IJoint> CreateP2PJoint(ButiEngine::Value_ptr< IRigidBody> arg_vlp_object, const ButiEngine::Vector3& arg_jointPosition,
+    const float arg_durability);
+BUTIBULLET_API ButiEngine::Value_ptr<IJoint> CreateP2PJoint(ButiEngine::Value_ptr< IRigidBody> arg_vlp_objectA, const ButiEngine::Vector3& arg_jointPositionA,
+    ButiEngine::Value_ptr< IRigidBody> arg_vlp_objectB, const ButiEngine::Vector3& arg_jointPositionB,
+    const float arg_durability);
+
+BUTIBULLET_API ButiEngine::Value_ptr<Joint_spring> CreateSpringJoint(ButiEngine::Value_ptr< IRigidBody> arg_vlp_objectA, const ButiEngine::Matrix4x4& arg_jointPositionA,
+    ButiEngine::Value_ptr< IRigidBody> arg_vlp_objectB, const ButiEngine::Matrix4x4& arg_jointPositionB,const float arg_durability);
 BUTIBULLET_API void SetGlobalSpeed(const float arg_speed);
 BUTIBULLET_API float GetGlobalSpeed();
 

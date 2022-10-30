@@ -12,7 +12,7 @@ namespace ButiBullet {
 
 class PhysicsWorld;
 class PhysicsObject;
-class Joint;
+class Joint_P2P;
 class ContactPoint;
 extern class CollisionShape
 {
