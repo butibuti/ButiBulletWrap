@@ -15,7 +15,7 @@ ButiBullet::PhysicsManager::~PhysicsManager()
 void ButiBullet::PhysicsManager::Initialize(const Settings& arg_settings)
 {
 	if (!vlp_activePhysicsWorld) {
-		vlp_activePhysicsWorld = ButiEngine::make_value< PhysicsWorld>();
+		vlp_activePhysicsWorld = ButiEngine::make_value< PhysicsWorld>(arg_settings.iteration);
 		vlp_activePhysicsWorld->Initialize();
 	}
 }

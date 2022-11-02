@@ -9,14 +9,13 @@
 #endif
 #include"ButiMemorySystem/ButiMemorySystem/ButiList.h"
 namespace ButiBullet {
-
 class PhysicsWorld;
-
 extern class PhysicsManager
 {
 public:
 	struct Settings
 	{
+		std::int32_t iteration = 1;
 	};
 
 	BUTIBULLET_API PhysicsManager();
