@@ -25,6 +25,7 @@ public:
     BUTIBULLET_API void OnAfterStepSimulation() override;
 
     BUTIBULLET_API TriggerBody();
+    BUTIBULLET_API ~TriggerBody();
     BUTIBULLET_API void Initialize();
     BUTIBULLET_API void Initialize(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape);
 
@@ -37,7 +38,6 @@ private:
     void RemoveFromBtWorld() override;
     void Activate();
 
-    class LocalGhostObject;
 
     enum DirtyFlags
     {
@@ -60,7 +60,7 @@ private:
     std::uint32_t groupMask = 0x0000FFFF;
     ButiEngine::Matrix4x4 transform;
 
-    LocalGhostObject* p_btGhostObject = nullptr;
+    btRigidBody* p_btRigidBody;
     bool btWorldAdded = false;
 
     PhysicsDetail::BtShapeManager shapeManager;

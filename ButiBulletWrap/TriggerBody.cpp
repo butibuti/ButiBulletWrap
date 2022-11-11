@@ -6,62 +6,10 @@
 #pragma warning(default : 5033)
 #include "PhysicsWorld.h"
 #include "PhysicsManager.h"
+#include"MotionState.h"
 #include "BulletUtil.h"
 
 #include "TriggerBody.h"
-
-
-class ButiBullet::TriggerBody::LocalGhostObject : public btGhostObject
-{
-public:
-	ButiEngine::Value_ptr<TriggerBody> vlp_owner;
-
-	LocalGhostObject(ButiEngine::Value_ptr<TriggerBody> arg_vlp_owner)
-		: vlp_owner(arg_vlp_owner)
-	{}
-
-	virtual void addOverlappingObjectInternal(btBroadphaseProxy* otherProxy, btBroadphaseProxy* thisProxy = 0) override
-	{
-		btCollisionObject* otherObject = (btCollisionObject*)otherProxy->m_clientObject;
-		assert(otherObject);
-		std::int32_t index = m_overlappingObjects.findLinearSearch(otherObject);
-		if (index == m_overlappingObjects.size())
-		{
-			m_overlappingObjects.push_back(otherObject);
-
-			auto bodyB = reinterpret_cast<ButiEngine::Value_weak_ptr<PhysicsObject>*>(otherObject->getUserPointer())->lock();
-
-			auto world = vlp_owner->GetPhysicsWorld();
-			world->PostBeginContact(vlp_owner, bodyB);
-
-			if (bodyB->GetPhysicsObjectType() == PhysicsObjectType::RigidBody) {
-				world->PostBeginContact(bodyB, vlp_owner);
-			}
-		}
-	}
-
-	virtual void removeOverlappingObjectInternal(btBroadphaseProxy* otherProxy, btDispatcher* dispatcher, btBroadphaseProxy* thisProxy = 0) override
-	{
-		btCollisionObject* otherObject = (btCollisionObject*)otherProxy->m_clientObject;
-		assert(otherObject);
-		std::int32_t index = m_overlappingObjects.findLinearSearch(otherObject);
-		if (index < m_overlappingObjects.size())
-		{
-			m_overlappingObjects[index] = m_overlappingObjects[m_overlappingObjects.size() - 1];
-			m_overlappingObjects.pop_back();
-
-			auto bodyB = reinterpret_cast<ButiEngine::Value_weak_ptr<PhysicsObject>*>(otherObject->getUserPointer())->lock();
-
-			auto world = vlp_owner->GetPhysicsWorld();
-			world->PostEndContact(vlp_owner, bodyB);
-
-			if (bodyB->GetPhysicsObjectType() == PhysicsObjectType::RigidBody) {
-				world->PostEndContact(bodyB, vlp_owner);
-			}
-		}
-	}
-};
-
 
 ButiEngine::Value_ptr<ButiBullet::TriggerBody> ButiBullet::TriggerBody::Create(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape)
 {
@@ -108,7 +56,7 @@ void ButiBullet::TriggerBody::OnPrepareStepSimulation()
 {
 	PhysicsObject::OnPrepareStepSimulation();
 
-	if (!p_btGhostObject || (dirtyFlags & (DirtyFlags_InitialUpdate))) {
+	if (!p_btRigidBody || (dirtyFlags & (DirtyFlags_InitialUpdate))) {
 		CreateBtObject();
 		dirtyFlags &= ~DirtyFlags_Shapes;	
 		dirtyFlags &= ~DirtyFlags_Group;	
@@ -116,8 +64,9 @@ void ButiBullet::TriggerBody::OnPrepareStepSimulation()
 	}
 
 	if (dirtyFlags & DirtyFlags_Shapes) {
-		p_btGhostObject->setCollisionShape(shapeManager.GetBtCollisionShape());
-		ReaddToWorld();
+		GetPhysicsWorld()->GetBtWorld()->removeCollisionObject(p_btRigidBody);
+		p_btRigidBody->setCollisionShape(shapeManager.GetBtCollisionShape());
+		GetPhysicsWorld()->GetBtWorld()->addCollisionObject(p_btRigidBody, group, groupMask);
 		dirtyFlags &= ~DirtyFlags_Group;
 	}
 
@@ -128,7 +77,9 @@ void ButiBullet::TriggerBody::OnPrepareStepSimulation()
 	if (dirtyFlags & DirtyFlags_Transform) {
 		btTransform btTransform;
 		btTransform.setFromOpenGLMatrix(reinterpret_cast<btScalar*>( &transform));
-		p_btGhostObject->setWorldTransform(btTransform);
+		p_btRigidBody->setWorldTransform(btTransform);
+		p_btRigidBody->getMotionState()->setWorldTransform(btTransform);
+		p_btRigidBody->activate();
 	}
 
 	dirtyFlags = DirtyFlags_None;
@@ -140,30 +91,38 @@ void ButiBullet::TriggerBody::OnAfterStepSimulation()
 }
 
 ButiBullet::TriggerBody::TriggerBody()
-	: PhysicsObject(PhysicsObjectType::TriggerBody)
+	: PhysicsObject(PhysicsObjectType::TriggerBody),p_btRigidBody(nullptr),btWorldAdded(false)
+	, shapeManager()
+	, transform()
 {
 }
-
+ButiBullet::TriggerBody::~TriggerBody()
+{
+	if (p_btRigidBody != nullptr)
+	{
+		btMotionState* state = p_btRigidBody->getMotionState();
+		delete (state);
+		delete (p_btRigidBody);
+	}
+}
 void ButiBullet::TriggerBody::Initialize()
 {
-	PhysicsObject::Initialize();
 }
 
 void ButiBullet::TriggerBody::Initialize(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape)
 {
-	Initialize();
 	AddCollisionShape(arg_vlp_shape);
 }
 
 void ButiBullet::TriggerBody::RemoveFromBtWorld()
 {
 	if (btWorldAdded) {
-		GetPhysicsWorld()->GetBtWorld()->removeCollisionObject(p_btGhostObject);
+		GetPhysicsWorld()->GetBtWorld()->removeCollisionObject(p_btRigidBody);
 		btWorldAdded = false;
 
-		if (p_btGhostObject) {
-			delete p_btGhostObject;
-			p_btGhostObject = nullptr;
+		if (p_btRigidBody) {
+			delete p_btRigidBody;
+			p_btRigidBody = nullptr;
 		}
 	}
 }
@@ -178,33 +137,45 @@ void ButiBullet::TriggerBody::CreateBtObject()
 	DeleteBtObject();
 
 	assert(!shapeManager.IsEmpty());
-	p_btGhostObject = new LocalGhostObject(ButiEngine::dynamic_value_ptr_cast<TriggerBody>(value_from_this()));
-	p_btGhostObject->setUserPointer(weakAddress());
+	btTransform initialTransform;
+	{
+		initialTransform.setFromOpenGLMatrix(reinterpret_cast<const btScalar*>(&transform));
+		initialTransform.getOrigin().setX(initialTransform.getOrigin().x());
+		initialTransform.getOrigin().setY(initialTransform.getOrigin().y());
+		initialTransform.getOrigin().setZ(initialTransform.getOrigin().z());
+	}
+	btMotionState* motionState = nullptr;
+	motionState= new PhysicsDetail::SynchronizeMotionState(this, initialTransform);
 
-	p_btGhostObject->setCollisionShape(shapeManager.GetBtCollisionShape());
 
-	p_btGhostObject->setCollisionFlags(p_btGhostObject->getCollisionFlags() | btCollisionObject::CF_NO_CONTACT_RESPONSE);
+
+	btRigidBody::btRigidBodyConstructionInfo bodyInfo(0, motionState, shapeManager.GetBtCollisionShape(), btVector3(0.0f, 0.0f, 0.0f));
+	p_btRigidBody = new btRigidBody(bodyInfo);
+	p_btRigidBody->setUserPointer(weakAddress());
+
+	p_btRigidBody->setCollisionShape(shapeManager.GetBtCollisionShape());
+	p_btRigidBody->setCollisionFlags( btCollisionObject::CF_NO_CONTACT_RESPONSE);
 
 	btTransform btTransform;
 	btTransform.setFromOpenGLMatrix(reinterpret_cast<btScalar*>(&transform));
-	p_btGhostObject->setWorldTransform(btTransform);
+	p_btRigidBody->setWorldTransform(btTransform);
 
-	GetPhysicsWorld()->GetBtWorld()->addCollisionObject(p_btGhostObject, group, groupMask);
+	GetPhysicsWorld()->GetBtWorld()->addCollisionObject(p_btRigidBody, group, groupMask);
 	btWorldAdded = true;
 }
 
 void ButiBullet::TriggerBody::DeleteBtObject()
 {
-	if (p_btGhostObject) {
-		delete p_btGhostObject;
-		p_btGhostObject = nullptr;
+	if (p_btRigidBody) {
+		delete p_btRigidBody;
+		p_btRigidBody = nullptr;
 	}
 }
 
 void ButiBullet::TriggerBody::ReaddToWorld()
 {
-	if (p_btGhostObject) {
-		GetPhysicsWorld()->GetBtWorld()->removeCollisionObject(p_btGhostObject);
-		GetPhysicsWorld()->GetBtWorld()->addCollisionObject(p_btGhostObject, group, groupMask);
+	if (p_btRigidBody) {
+		GetPhysicsWorld()->GetBtWorld()->removeCollisionObject(p_btRigidBody);
+		GetPhysicsWorld()->GetBtWorld()->addCollisionObject(p_btRigidBody, group, groupMask);
 	}
 }

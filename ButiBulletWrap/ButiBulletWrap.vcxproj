@@ -131,6 +131,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\outerLibrary\bullet3\src;$(SolutionDir)Libs\Library\ButiEngineHeader;$(SolutionDir)Libs\Library</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -156,6 +157,7 @@
       <LanguageStandard>stdcpp20</LanguageStandard>
       <AdditionalIncludeDirectories>$(SolutionDir)..\..\outerLibrary\bullet3\src;$(SolutionDir)Libs\Library\ButiEngineHeader;$(SolutionDir)Libs\Library</AdditionalIncludeDirectories>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -176,6 +178,7 @@
     <ClInclude Include="CollisionShape.h" />
     <ClInclude Include="Common.h" />
     <ClInclude Include="Joint.h" />
+    <ClInclude Include="MotionState.h" />
     <ClInclude Include="PhysicsManager.h" />
     <ClInclude Include="PhysicsObject.h" />
     <ClInclude Include="PhysicsWorld.h" />

@@ -7,28 +7,9 @@
 #include "LinearMath/btMotionState.h"
 #include "PhysicsWorld.h"
 #include "PhysicsManager.h"
+#include"MotionState.h"
 namespace ButiBullet {
 
-namespace PhysicsDetail {
-
-class SynchronizeMotionState
-    : public btDefaultMotionState
-{
-public:
-    ButiBullet::RigidBody* p_owner;
-
-    SynchronizeMotionState(ButiBullet::RigidBody* arg_p_owner, const btTransform& startTrans = btTransform::getIdentity(), const btTransform& centerOfMassOffset = btTransform::getIdentity())
-        : btDefaultMotionState(startTrans, centerOfMassOffset)
-        , p_owner(arg_p_owner)
-    {
-    }
-
-    virtual void setWorldTransform(const btTransform& centerOfMassWorldTrans) override
-    {
-        btDefaultMotionState::setWorldTransform(centerOfMassWorldTrans);
-    }
-};
-}
 const ButiEngine::Vector3& RigidBody::GetAngularVelocity() const
 {
     return angularVelocity;
@@ -58,10 +39,12 @@ float RigidBody::GetRestitution() const
     return restitution;
 }
 }
-ButiEngine::Value_ptr<ButiBullet::RigidBody> ButiBullet::RigidBody::Create(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape)
+ButiEngine::Value_ptr<ButiBullet::RigidBody> ButiBullet::RigidBody::Create(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape
+    , const bool arg_isTrigger)
 {
     auto output=ButiEngine::make_value<RigidBody>();
     output->Initialize(arg_vlp_shape);
+    output->isTrigger = arg_isTrigger;
     return output;
 }
 
@@ -89,6 +72,7 @@ ButiBullet::RigidBody::RigidBody()
     , appliedTorque()
     , appliedTorqueImpulse()
     , modifiedFlags(Modified_All)
+    ,isTrigger(false)
 {
 }
 
@@ -503,7 +487,6 @@ void ButiBullet::RigidBody::CreateBtRigidBody()
         motionState = new PhysicsDetail::SynchronizeMotionState(this, initialTransform);
     }
 
-    // RigidBodyComponent 作成
     btRigidBody::btRigidBodyConstructionInfo bodyInfo(num, motionState, shape, localInertia);
     bodyInfo.m_linearDamping = l_linearDamping;
     bodyInfo.m_angularDamping = l_angularDamping;
@@ -514,13 +497,14 @@ void ButiBullet::RigidBody::CreateBtRigidBody()
 
     if (isKinematicObject)
     {
-        // CF_KINEMATIC_OBJECT と DISABLE_DEACTIVATION はセット。決まり事。
+        // CF_KINEMATIC_OBJECT と DISABLE_DEACTIVATION はセット
         // http://bulletjpn.web.fc2.com/07_RigidBodyDynamics.html
         p_btRigidBody->setCollisionFlags( btCollisionObject::CF_KINEMATIC_OBJECT);
         p_btRigidBody->setActivationState( DISABLE_DEACTIVATION);
     }
-    else
-    {
+    if (isTrigger) {
+        p_btRigidBody->setCollisionFlags(btCollisionObject::CF_NO_CONTACT_RESPONSE);
+        p_btRigidBody->setActivationState(DISABLE_DEACTIVATION);
     }
     p_btRigidBody->setSleepingThresholds(0.0f, 0.0f);
 

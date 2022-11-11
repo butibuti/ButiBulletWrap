@@ -16,7 +16,7 @@ class RigidBody: public PhysicsObject,public IRigidBody
 {
 public:
 
-    BUTIBULLET_API static ButiEngine::Value_ptr<RigidBody> Create(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape);
+    BUTIBULLET_API static ButiEngine::Value_ptr<RigidBody> Create(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape,const bool arg_isTrigger=false);
 
     BUTIBULLET_API RigidBody();
     BUTIBULLET_API ~RigidBody();
@@ -118,7 +118,7 @@ private:
         Modified_All = 0xFFFFFFFF,
     };
 
-    btRigidBody* p_btRigidBody;
+    btRigidBody* p_btRigidBody=nullptr;
     PhysicsDetail::BtShapeManager p_btShapeManager;
 
     ButiEngine::Matrix4x4 transform;
@@ -129,17 +129,13 @@ private:
     float scale;
     uint32_t group;	
     uint32_t groupMask;
-    bool isKinematicObject;
-    bool isAdditionalDamping;
+    bool isKinematicObject, isAdditionalDamping,isTrigger=false;
 
     ButiEngine::Flags<RigidBodyLimitFlags> flg_linearLimits;
     ButiEngine::Flags<RigidBodyLimitFlags> flg_angularLimits;
     std::mutex mtx_param;
     // UniformParams
-    float linearDamping;
-    float angularDamping;
-    float friction;
-    float restitution;
+    float linearDamping, angularDamping,friction,restitution;
 
     ButiEngine::Vector3 linearVelocity;
     ButiEngine::Vector3 angularVelocity;
