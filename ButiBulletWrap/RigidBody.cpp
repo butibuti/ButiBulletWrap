@@ -331,7 +331,7 @@ void ButiBullet::RigidBody::OnPrepareStepSimulation()
         if ((modifiedFlags & Modified_Mass) )
         {
             bool isStatic = p_btRigidBody->isStaticObject();
-            if (mass)
+            if (mass&&!isKinematicObject)
             {
                 btVector3 inertia;
                 p_btRigidBody->getCollisionShape()->calculateLocalInertia(mass, inertia);

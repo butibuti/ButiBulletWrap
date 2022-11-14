@@ -14,7 +14,6 @@
 
 #include"BulletUtil.h"
 #include"ButiRendering_Dx12/Header/MeshPrimitive.h"
-
 ButiBullet::CollisionShape::CollisionShape():p_shape(nullptr), position(), isTrigger(false)
 {
 }
@@ -129,7 +128,7 @@ ButiEngine::Value_ptr<ButiBullet::MeshCollisionShape> ButiBullet::MeshCollisionS
 ButiEngine::Value_ptr<ButiBullet::MeshCollisionShape> ButiBullet::MeshCollisionShape::Create(const ButiEngine::ButiRendering::MeshPrimitiveBase* arg_p_mesh, const ButiEngine::Matrix4x4& arg_transform)
 {
     auto output = ButiEngine::make_value<ButiBullet::MeshCollisionShape>();
-    output->Initialize(arg_p_mesh);
+    output->Initialize(arg_p_mesh,arg_transform);
     return output;
 }
 
@@ -139,6 +138,9 @@ ButiBullet::MeshCollisionShape::MeshCollisionShape()
 
 ButiBullet::MeshCollisionShape::~MeshCollisionShape()
 {
+	if (p_btMeshData) {
+		delete p_btMeshData;
+	}
 }
 
 bool ButiBullet::MeshCollisionShape::Initialize()
@@ -171,12 +173,11 @@ bool ButiBullet::MeshCollisionShape::InitInternal(const ButiEngine::ButiRenderin
 	btMesh.m_numVertices = arg_p_mesh->GetVertexCount();
 	btMesh.m_vertexBase = reinterpret_cast<const unsigned char*>(arg_p_mesh->GetVertexData());
 	btMesh.m_vertexStride = sizeof(ButiEngine::Vertex::Vertex_UV_Normal);
-
 	PHY_ScalarType indexFormat = PHY_INTEGER;
 
 	p_btMeshData = new btTriangleIndexVertexArray();
 	p_btMeshData->addIndexedMesh(btMesh, indexFormat);
-
+	p_btMeshData->setScaling(btVector3(arg_transform->_11, arg_transform->_22, arg_transform->_33));
 	auto output = CollisionShape::Initialize(new btBvhTriangleMeshShape(p_btMeshData, true));
 	return output;
 

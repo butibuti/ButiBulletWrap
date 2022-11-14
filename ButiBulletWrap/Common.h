@@ -44,9 +44,19 @@ class PhysicsWorld;
 class PhysicsObject;
 class RigidBody;
 class TriggerBody;
-class ContactPoint;
+class ContactPoint {
+    ButiEngine::Vector3 point, normal;
+};
 class CollisionShape;
 class Joint_spring;
+
+struct PhysicsRaycastResult
+{
+    PhysicsObject* physicsObject;
+    ButiEngine::Vector3 point;
+    ButiEngine::Vector3 normal;
+    float distance;
+};
 
 namespace PhysicsDetail {
 class IPhysicsObjectEventListener

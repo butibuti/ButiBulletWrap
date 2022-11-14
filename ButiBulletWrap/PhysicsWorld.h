@@ -12,14 +12,6 @@ class PhysicsObject;
 class RigidBody;
 class PhysicsJoint;
 
-struct PhysicsRaycastResult
-{
-    PhysicsObject* physicsObject;
-    ButiEngine::Vector3 point;
-    ButiEngine::Vector3 normal;
-    float distance;
-};
-
 
 class PhysicsWorld:public ButiEngine::enable_value_from_this<PhysicsWorld>
 {

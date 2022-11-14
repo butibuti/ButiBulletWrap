@@ -117,6 +117,9 @@ bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, co
         arg_p_outResult->normal = PhysicsDetail::BulletUtil::btVector3ToVector3(callback.m_hitNormalWorld);
         arg_p_outResult->distance = arg_maxDistance * callback.m_closestHitFraction;
     }
+    else {
+        arg_p_outResult->physicsObject = nullptr;
+    }
 
     return callback.hasHit();
 }

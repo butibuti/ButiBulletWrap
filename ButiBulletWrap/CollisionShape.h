@@ -47,7 +47,7 @@ public:
 	BUTIBULLET_API static ButiEngine::Value_ptr<PlaneCollisionShape> Create(const ButiEngine::Vector3& arg_direction);
 
 	BUTIBULLET_API PlaneCollisionShape();
-	BUTIBULLET_API virtual ~PlaneCollisionShape();
+	BUTIBULLET_API ~PlaneCollisionShape();
 
 	BUTIBULLET_API bool Initialize();
 	BUTIBULLET_API bool Initialize(const ButiEngine::Vector3& arg_direction);
@@ -72,7 +72,7 @@ public:
 	BUTIBULLET_API static ButiEngine::Value_ptr<CylinderShape> Create(const ButiEngine::Vector3& arg_scale);
 
 	BUTIBULLET_API CylinderShape();
-	BUTIBULLET_API virtual ~CylinderShape();
+	BUTIBULLET_API ~CylinderShape();
 
 	BUTIBULLET_API bool Initialize();
 	BUTIBULLET_API bool Initialize(const ButiEngine::Vector3& arg_scale);
@@ -97,7 +97,7 @@ public:
 	BUTIBULLET_API static ButiEngine::Value_ptr<SphereCollisionShape> Create(const float arg_radius);
 
 	BUTIBULLET_API SphereCollisionShape();
-	BUTIBULLET_API virtual ~SphereCollisionShape();
+	BUTIBULLET_API ~SphereCollisionShape();
 
 	BUTIBULLET_API bool Initialize();
 	BUTIBULLET_API bool Initialize(const float arg_radius);
@@ -124,7 +124,7 @@ public:
 	BUTIBULLET_API static ButiEngine::Value_ptr<MeshCollisionShape> Create(const ButiEngine::ButiRendering::MeshPrimitiveBase* arg_p_mesh, const ButiEngine::Matrix4x4& arg_transform);
 
 	BUTIBULLET_API MeshCollisionShape();
-	BUTIBULLET_API virtual ~MeshCollisionShape();
+	BUTIBULLET_API ~MeshCollisionShape();
 
 	BUTIBULLET_API bool Initialize();
 	BUTIBULLET_API bool Initialize(const ButiEngine::ButiRendering::MeshPrimitiveBase* arg_p_mesh);
