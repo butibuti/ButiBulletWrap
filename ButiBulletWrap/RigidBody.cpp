@@ -281,12 +281,22 @@ void ButiBullet::RigidBody::ClearForces()
     modifiedFlags &= ~Modified_ApplyCenterImpulse;
     modifiedFlags &= ~Modified_ApplyTorque;
     modifiedFlags &= ~Modified_ApplyTorqueImpulse;
-    appliedCenterForce =ButiEngine::Vector3Const::Zero;
+    appliedCenterForce = ButiEngine::Vector3Const::Zero;
     appliedCenterImpulse = ButiEngine::Vector3Const::Zero;
     appliedTorque = ButiEngine::Vector3Const::Zero;
     appliedTorqueImpulse = ButiEngine::Vector3Const::Zero;
 }
-
+void ButiBullet::RigidBody::ClearGravity()
+{
+    std::lock_guard lock(mtx_param);
+    gravityVelocity = ButiEngine::Vector3();
+    modifiedFlags |= ModifiedFlags::Modified_Gravity;
+}
+void ButiBullet::RigidBody::SetGravity(ButiEngine::Vector3 arg_gravity) {
+    std::lock_guard lock(mtx_param);
+    gravityVelocity = arg_gravity;
+    modifiedFlags |= ModifiedFlags::Modified_Gravity;
+}
 
 void ButiBullet::RigidBody::AddCollisionShape(ButiEngine::Value_ptr<CollisionShape> arg_vlp_shape)
 {
@@ -298,7 +308,7 @@ void ButiBullet::RigidBody::AddCollisionShape(ButiEngine::Value_ptr<CollisionSha
 void ButiBullet::RigidBody::OnPrepareStepSimulation()
 {
     std::lock_guard lock(mtx_param);
-    //PhysicsObject::OnPrepareStepSimulation();
+    PhysicsObject::OnPrepareStepSimulation();
 
 
     if ((modifiedFlags & Modified_InitialUpdate) )
@@ -307,18 +317,17 @@ void ButiBullet::RigidBody::OnPrepareStepSimulation()
         modifiedFlags &= ~Modified_ReaddToWorld;
     }
 
-    if ((modifiedFlags & Modified_WorldTransform)  | isKinematicObject)
+    if ((modifiedFlags & Modified_WorldTransform)  || isKinematicObject)
     {
         btTransform l_transform;
         l_transform.setFromOpenGLMatrix(reinterpret_cast<btScalar*>( &transform));
         p_btRigidBody->setWorldTransform(l_transform);
 
-        if (p_btRigidBody )
-        {
-            p_btRigidBody->getMotionState()->setWorldTransform(l_transform);
-        }
+        p_btRigidBody->getMotionState()->setWorldTransform(l_transform);
     }
-
+    if (modifiedFlags & Modified_Gravity) {
+        p_btRigidBody->setGravity(PhysicsDetail::BulletUtil::Vector3ToBtVector3(gravityVelocity));
+    }
     if (p_btRigidBody )
     {
         if ((modifiedFlags & Modified_LimittFlags) )
@@ -413,7 +422,7 @@ void ButiBullet::RigidBody::OnAfterStepSimulation()
         l_transform.getOpenGLMatrix(reinterpret_cast<btScalar*>( &transform));
     }
 
-    //PhysicsObject::OnAfterStepSimulation();
+    PhysicsObject::OnAfterStepSimulation();
 }
 
 void ButiBullet::RigidBody::RemoveFromBtWorld()
@@ -494,12 +503,11 @@ void ButiBullet::RigidBody::CreateBtRigidBody()
     bodyInfo.m_friction = l_friction;
     bodyInfo.m_additionalDamping = isAdditionalDamping;
     p_btRigidBody = new btRigidBody(bodyInfo);
-
     if (isKinematicObject)
     {
         // CF_KINEMATIC_OBJECT ‚Æ DISABLE_DEACTIVATION ‚ÍƒZƒbƒg
         // http://bulletjpn.web.fc2.com/07_RigidBodyDynamics.html
-        p_btRigidBody->setCollisionFlags( btCollisionObject::CF_KINEMATIC_OBJECT);
+        p_btRigidBody->setCollisionFlags(p_btRigidBody->getCollisionFlags()| btCollisionObject::CF_KINEMATIC_OBJECT);
         p_btRigidBody->setActivationState( DISABLE_DEACTIVATION);
     }
     if (isTrigger) {

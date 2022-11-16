@@ -156,8 +156,11 @@ public:
     virtual float GetRestitution()const =0;
     virtual uint32_t GetCollisionGroup()const=0;
     virtual uint32_t GetCollisionGroupMask()const=0;
-
+    virtual void ClearGravity() = 0;
     virtual  btRigidBody* GetBody() const = 0;
+
+    virtual void SetGravity(ButiEngine::Vector3 arg_gravity) = 0;
+    virtual ButiEngine::Vector3 GetGravity()const=0;
 };
 
 class ITriggerBody {

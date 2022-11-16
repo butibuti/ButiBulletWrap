@@ -162,21 +162,16 @@ bool ButiBullet::MeshCollisionShape::InitInternal(const ButiEngine::ButiRenderin
 {
 	if (!arg_p_mesh) return false;
 	if (p_btMeshData) return false;
-
-
-
-
 	btIndexedMesh btMesh;
 	btMesh.m_numTriangles = arg_p_mesh->GetIndexCount() / 3;
 	btMesh.m_triangleIndexBase = reinterpret_cast<const unsigned char*>(arg_p_mesh->GetIndexData());
 	btMesh.m_triangleIndexStride = sizeof(std::uint32_t) * 3;
 	btMesh.m_numVertices = arg_p_mesh->GetVertexCount();
 	btMesh.m_vertexBase = reinterpret_cast<const unsigned char*>(arg_p_mesh->GetVertexData());
-	btMesh.m_vertexStride = sizeof(ButiEngine::Vertex::Vertex_UV_Normal);
-	PHY_ScalarType indexFormat = PHY_INTEGER;
+	btMesh.m_vertexStride = sizeof(ButiEngine::Vertex::Vertex);
 
 	p_btMeshData = new btTriangleIndexVertexArray();
-	p_btMeshData->addIndexedMesh(btMesh, indexFormat);
+	p_btMeshData->addIndexedMesh(btMesh, PHY_INTEGER);
 	p_btMeshData->setScaling(btVector3(arg_transform->_11, arg_transform->_22, arg_transform->_33));
 	auto output = CollisionShape::Initialize(new btBvhTriangleMeshShape(p_btMeshData, true));
 	return output;

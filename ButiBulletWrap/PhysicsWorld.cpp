@@ -140,6 +140,8 @@ void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
 
     {
         std::lock_guard lock(m_mtx_sim);
+        m_p_btWorld->updateAabbs();
+        m_p_btWorld->computeOverlappingPairs();
         m_p_btWorld->applyGravity();
         m_p_btWorld->stepSimulation(arg_elapsedSeconds, m_iteration, m_iterationTimeUnit * GetGlobalSpeed());
 
@@ -236,7 +238,7 @@ void ButiBullet::PhysicsWorld::Initialize()
 
     m_p_btWorld = new btSoftRigidDynamicsWorld(m_p_btCollisionDispatcher, m_p_btBroadphase, m_p_btSolver, m_p_btCollisionConfig, nullptr);
 
-    m_p_btWorld->setGravity(btVector3(0.0f, -9.8f, 0.0f));
+    m_p_btWorld->setGravity(btVector3(0.0f, 0, 0.0f));
 
 
     m_p_btGhostPairCallback = new btGhostPairCallback();

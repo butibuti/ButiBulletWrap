@@ -78,7 +78,11 @@ public:
 
     BUTIBULLET_API btRigidBody* GetBody() const override{ return p_btRigidBody; }
     void SetModifiedAll(){ modifiedFlags = Modified_All; }
-
+    BUTIBULLET_API void ClearGravity()override;
+    BUTIBULLET_API void SetGravity(ButiEngine::Vector3 arg_gravity)override;
+    ButiEngine::Vector3 GetGravity()const override {
+        return gravityVelocity;
+    }
 protected:
     BUTIBULLET_API void OnPrepareStepSimulation() override;
     BUTIBULLET_API void OnAfterStepSimulation() override;
@@ -104,6 +108,7 @@ private:
         Modified_LimittFlags = 0x0040,
         Modified_Colliders = 0x0080,
         Modified_WorldRotation = 0x0100,
+        Modified_Gravity = 0x0200,
         Modified_LinearVelocity = 0x1000,
         Modified_AngularVelocity = 0x2000,
         Modified_UniformParams = 0x4000,
@@ -137,12 +142,7 @@ private:
     // UniformParams
     float linearDamping, angularDamping,friction,restitution;
 
-    ButiEngine::Vector3 linearVelocity;
-    ButiEngine::Vector3 angularVelocity;
-    ButiEngine::Vector3 appliedCenterForce;
-    ButiEngine::Vector3 appliedCenterImpulse;
-    ButiEngine::Vector3 appliedTorque;
-    ButiEngine::Vector3 appliedTorqueImpulse;
+    ButiEngine::Vector3 linearVelocity,angularVelocity,appliedCenterForce,appliedCenterImpulse,appliedTorque,appliedTorqueImpulse,gravityVelocity;
 
     std::int32_t modifiedFlags;
 
