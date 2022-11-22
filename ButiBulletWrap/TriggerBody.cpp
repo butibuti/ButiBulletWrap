@@ -103,6 +103,7 @@ ButiBullet::TriggerBody::~TriggerBody()
 		btMotionState* state = p_btRigidBody->getMotionState();
 		delete (state);
 		delete (p_btRigidBody);
+		p_btRigidBody = nullptr;
 	}
 }
 void ButiBullet::TriggerBody::Initialize()

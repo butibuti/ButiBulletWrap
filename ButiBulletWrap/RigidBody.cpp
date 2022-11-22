@@ -73,6 +73,7 @@ ButiBullet::RigidBody::RigidBody()
     , appliedTorqueImpulse()
     , modifiedFlags(Modified_All)
     ,isTrigger(false)
+	,gravityVelocity(ButiEngine::Vector3(0,-9.8,0))
 {
 }
 
@@ -281,6 +282,8 @@ void ButiBullet::RigidBody::ClearForces()
     modifiedFlags &= ~Modified_ApplyCenterImpulse;
     modifiedFlags &= ~Modified_ApplyTorque;
     modifiedFlags &= ~Modified_ApplyTorqueImpulse;
+    modifiedFlags &= ~Modified_LinearVelocity;
+    modifiedFlags &= ~Modified_AngularVelocity;
     appliedCenterForce = ButiEngine::Vector3Const::Zero;
     appliedCenterImpulse = ButiEngine::Vector3Const::Zero;
     appliedTorque = ButiEngine::Vector3Const::Zero;
@@ -357,10 +360,12 @@ void ButiBullet::RigidBody::OnPrepareStepSimulation()
         if ((modifiedFlags & Modified_LinearVelocity))
         {
             p_btRigidBody->setLinearVelocity(PhysicsDetail::BulletUtil::Vector3ToBtVector3(linearVelocity));
+            modifiedFlags &= ~Modified_ClearForces;
         }
         if ((modifiedFlags & Modified_AngularVelocity) )
         {
             p_btRigidBody->setAngularVelocity(PhysicsDetail::BulletUtil::Vector3ToBtVector3(angularVelocity));
+            modifiedFlags &= ~Modified_ClearForces;
         }
         if ((modifiedFlags & Modified_UniformParams))
         {
@@ -372,6 +377,7 @@ void ButiBullet::RigidBody::OnPrepareStepSimulation()
         if ((modifiedFlags & Modified_ReaddToWorld) )
         {
             ReaddToWorld();
+			p_btRigidBody->setGravity(PhysicsDetail::BulletUtil::Vector3ToBtVector3(gravityVelocity));
         }
 
         // clearForces óvãÅ

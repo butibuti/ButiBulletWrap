@@ -8,8 +8,10 @@ ButiBullet::PhysicsManager::PhysicsManager()
 
 ButiBullet::PhysicsManager::~PhysicsManager()
 {
-	vlp_activePhysicsWorld->OnDispose(true);
-	vlp_activePhysicsWorld = nullptr;
+	if (vlp_activePhysicsWorld) {
+		vlp_activePhysicsWorld->OnDispose(true);
+		vlp_activePhysicsWorld = nullptr;
+	}
 }
 
 void ButiBullet::PhysicsManager::Initialize(const Settings& arg_settings)
