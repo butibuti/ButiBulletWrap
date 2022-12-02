@@ -104,11 +104,13 @@ void ButiBullet::PhysicsWorld::RemoveJoint(ButiEngine::Value_ptr< IJoint> arg_vl
     arg_vlp_joint->SetIsRemoving(true);
 }
 
-bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_layerMask, const bool arg_queryTrigger, PhysicsRaycastResult* arg_p_outResult)
+bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_group, const std::uint32_t arg_groupMask, const bool arg_queryTrigger, PhysicsRaycastResult* arg_p_outResult)
 {
     btCollisionWorld::ClosestRayResultCallback callback(
         PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin),
         PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin + arg_direction * arg_maxDistance));
+	callback.m_collisionFilterMask = arg_groupMask;
+	callback.m_collisionFilterGroup = arg_group;
     m_p_btWorld->rayTest(callback.m_rayFromWorld, callback.m_rayToWorld, callback);
 
     if (arg_p_outResult && callback.hasHit()) {

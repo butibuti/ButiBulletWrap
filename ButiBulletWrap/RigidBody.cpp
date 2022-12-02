@@ -295,7 +295,7 @@ void ButiBullet::RigidBody::ClearGravity()
     gravityVelocity = ButiEngine::Vector3();
     modifiedFlags |= ModifiedFlags::Modified_Gravity;
 }
-void ButiBullet::RigidBody::SetGravity(ButiEngine::Vector3 arg_gravity) {
+void ButiBullet::RigidBody::SetGravity(const ButiEngine::Vector3& arg_gravity) {
     std::lock_guard lock(mtx_param);
     gravityVelocity = arg_gravity;
     modifiedFlags |= ModifiedFlags::Modified_Gravity;

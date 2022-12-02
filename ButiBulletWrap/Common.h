@@ -159,8 +159,8 @@ public:
     virtual void ClearGravity() = 0;
     virtual  btRigidBody* GetBody() const = 0;
 
-    virtual void SetGravity(ButiEngine::Vector3 arg_gravity) = 0;
-    virtual ButiEngine::Vector3 GetGravity()const=0;
+    virtual void SetGravity(const ButiEngine::Vector3& arg_gravity) = 0;
+    virtual const ButiEngine::Vector3& GetGravity()const=0;
 };
 
 class ITriggerBody {

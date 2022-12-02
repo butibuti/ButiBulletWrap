@@ -79,8 +79,8 @@ public:
     BUTIBULLET_API btRigidBody* GetBody() const override{ return p_btRigidBody; }
     void SetModifiedAll(){ modifiedFlags = Modified_All; }
     BUTIBULLET_API void ClearGravity()override;
-    BUTIBULLET_API void SetGravity(ButiEngine::Vector3 arg_gravity)override;
-    ButiEngine::Vector3 GetGravity()const override {
+    BUTIBULLET_API void SetGravity(const ButiEngine::Vector3 &arg_gravity)override;
+    const ButiEngine::Vector3& GetGravity()const override {
         return gravityVelocity;
     }
 protected:
