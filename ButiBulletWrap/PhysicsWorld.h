@@ -25,8 +25,11 @@ public:
     BUTIBULLET_API void RemovePhysicsObject(ButiEngine::Value_ptr< PhysicsObject > arg_vlp_physicsObject);
     BUTIBULLET_API void RemoveJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint);
 
-    BUTIBULLET_API bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction,const float arg_maxDistance, const std::uint32_t arg_group, const std::uint32_t arg_groupMask,const bool arg_queryTrigger , PhysicsRaycastResult* arg_p_outResult = nullptr);
-    BUTIBULLET_API bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction,const float arg_maxDistance, const std::uint32_t arg_group, const std::uint32_t arg_groupMask, PhysicsRaycastResult* arg_p_outResult = nullptr) { return Raycast(arg_origin, arg_direction, arg_maxDistance, arg_group,arg_groupMask, false, arg_p_outResult); }
+	BUTIBULLET_API bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const bool arg_queryTrigger, PhysicsRaycastResult* arg_p_outResult = nullptr);
+	BUTIBULLET_API bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, PhysicsRaycastResult* arg_p_outResult = nullptr) { return Raycast(arg_origin, arg_direction, arg_maxDistance, false, arg_p_outResult); }
+
+	BUTIBULLET_API bool RaycastAllHit(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_groupMask, const bool arg_queryTrigger, ButiEngine::List<PhysicsRaycastResult>* arg_p_outResult = nullptr);
+	BUTIBULLET_API bool RaycastAllHit(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_groupMask, ButiEngine::List<PhysicsRaycastResult>* arg_p_outResult = nullptr) { return RaycastAllHit(arg_origin, arg_direction, arg_maxDistance, arg_groupMask, false, arg_p_outResult); }
 
 
     btSoftRigidDynamicsWorld* GetBtWorld() { return m_p_btWorld; }

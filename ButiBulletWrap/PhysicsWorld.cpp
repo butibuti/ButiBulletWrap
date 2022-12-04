@@ -104,13 +104,13 @@ void ButiBullet::PhysicsWorld::RemoveJoint(ButiEngine::Value_ptr< IJoint> arg_vl
     arg_vlp_joint->SetIsRemoving(true);
 }
 
-bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_group, const std::uint32_t arg_groupMask, const bool arg_queryTrigger, PhysicsRaycastResult* arg_p_outResult)
+bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const bool arg_queryTrigger, PhysicsRaycastResult* arg_p_outResult)
 {
     btCollisionWorld::ClosestRayResultCallback callback(
         PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin),
         PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin + arg_direction * arg_maxDistance));
-	callback.m_collisionFilterMask = arg_groupMask;
-	callback.m_collisionFilterGroup = arg_group;
+	callback.m_collisionFilterMask = btBroadphaseProxy::AllFilter;
+	callback.m_collisionFilterGroup = btBroadphaseProxy::DefaultFilter;
     m_p_btWorld->rayTest(callback.m_rayFromWorld, callback.m_rayToWorld, callback);
 
     if (arg_p_outResult && callback.hasHit()) {
@@ -119,11 +119,41 @@ bool ButiBullet::PhysicsWorld::Raycast(const ButiEngine::Vector3& arg_origin, co
         arg_p_outResult->normal = PhysicsDetail::BulletUtil::btVector3ToVector3(callback.m_hitNormalWorld);
         arg_p_outResult->distance = arg_maxDistance * callback.m_closestHitFraction;
     }
-    else {
+    else if(arg_p_outResult) {
         arg_p_outResult->physicsObject = nullptr;
     }
 
     return callback.hasHit();
+}
+
+bool ButiBullet::PhysicsWorld::RaycastAllHit(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_groupMask, const bool arg_queryTrigger, ButiEngine::List<PhysicsRaycastResult>* arg_p_outResult ) {
+	btCollisionWorld::AllHitsRayResultCallback callback(
+		PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin),
+		PhysicsDetail::BulletUtil::Vector3ToBtVector3(arg_origin + arg_direction * arg_maxDistance));
+	callback.m_collisionFilterMask = btBroadphaseProxy::AllFilter;
+	callback.m_collisionFilterGroup = btBroadphaseProxy::DefaultFilter;
+	m_p_btWorld->rayTest(callback.m_rayFromWorld, callback.m_rayToWorld, callback);
+
+	if (arg_p_outResult && callback.hasHit()) {
+		
+		for (std::int32_t index = 0, max = callback.m_collisionObjects.size(); index < max;index++) {
+			PhysicsRaycastResult res;
+			if (!(callback.m_collisionObjects[index]->getCollisionFlags()|arg_groupMask)) {
+				continue;
+			}
+			res.physicsObject = reinterpret_cast<ButiEngine::Value_weak_ptr<PhysicsObject>*>(callback.m_collisionObjects[index]->getUserPointer())->lock().get();
+			res.point = PhysicsDetail::BulletUtil::btVector3ToVector3(callback.m_hitPointWorld[index]);
+			res.normal = PhysicsDetail::BulletUtil::btVector3ToVector3(callback.m_hitNormalWorld[index]);
+			res.distance = arg_maxDistance * callback.m_hitFractions[index];
+			arg_p_outResult->Add(res);
+		}
+
+	}
+	else if (arg_p_outResult) {
+		arg_p_outResult->Clear();
+	}
+
+	return callback.hasHit();
 }
 
 void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
@@ -214,8 +244,8 @@ ButiBullet::PhysicsWorld::~PhysicsWorld()
 
 void ButiBullet::PhysicsWorld::Initialize()
 {
-    btAlignedAllocSetCustom(&ButiMemorySystem::Allocator::allocate_large, &ButiMemorySystem::Allocator::deallocate_bt);
-    btAlignedAllocSetCustomAligned(&ButiMemorySystem::Allocator::allocate_customAlign, &ButiMemorySystem::Allocator::deallocate_bt);
+    btAlignedAllocSetCustom(&ButiMemorySystem::Allocator::allocateLarge, &ButiMemorySystem::Allocator::deallocateBt);
+    btAlignedAllocSetCustomAligned(&ButiMemorySystem::Allocator::allocateCustomAlign, &ButiMemorySystem::Allocator::deallocateBt);
 
     std::int32_t maxNumOutstandingTasks = 4;
 
