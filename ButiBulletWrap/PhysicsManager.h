@@ -10,6 +10,7 @@
 #include"ButiMemorySystem/ButiMemorySystem/ButiList.h"
 namespace ButiBullet {
 class PhysicsWorld;
+class IPhysicsWorld;
 extern class PhysicsManager
 {
 public:
@@ -23,8 +24,8 @@ public:
 	BUTIBULLET_API void Initialize(const Settings& arg_settings);
 	BUTIBULLET_API void Dispose();
 	BUTIBULLET_API void Update();
-	BUTIBULLET_API void SetActivePhysicsWorld(ButiEngine::Value_ptr<PhysicsWorld> arg_vlp_world);
-	BUTIBULLET_API ButiEngine::Value_ptr<PhysicsWorld> GetActivePhysicsWorld() const;
+	BUTIBULLET_API void SetActivePhysicsWorld(ButiEngine::Value_ptr<IPhysicsWorld> arg_vlp_world);
+	BUTIBULLET_API ButiEngine::Value_ptr<IPhysicsWorld> GetActivePhysicsWorld() const;
 
 
 private:

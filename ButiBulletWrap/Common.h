@@ -185,6 +185,28 @@ public:
     virtual void OnPrepareStepSimulation() {};
 };
 
+
+class IPhysicsWorld
+{
+public:
+	virtual void AddPhysicsObject(ButiEngine::Value_ptr< PhysicsObject >arg_vlp_physicsObject)=0;
+	virtual void AddJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint)=0;
+
+	virtual void RemovePhysicsObject(ButiEngine::Value_ptr< PhysicsObject > arg_vlp_physicsObject)=0;
+	virtual void RemoveJoint(ButiEngine::Value_ptr< IJoint> arg_vlp_joint)=0;
+
+	virtual bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const bool arg_queryTrigger, PhysicsRaycastResult* arg_p_outResult = nullptr)= 0;
+	virtual bool Raycast(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, PhysicsRaycastResult* arg_p_outResult = nullptr) = 0;
+	virtual bool RaycastAllHit(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_groupMask, const bool arg_queryTrigger, ButiEngine::List<PhysicsRaycastResult>* arg_p_outResult = nullptr)= 0;
+	virtual bool RaycastAllHit(const ButiEngine::Vector3& arg_origin, const ButiEngine::Vector3& arg_direction, const float arg_maxDistance, const std::uint32_t arg_groupMask, ButiEngine::List<PhysicsRaycastResult>* arg_p_outResult = nullptr) = 0;
+
+	virtual void Initialize()= 0;
+	virtual void OnDispose(const bool arg_explicitDisposing)= 0;
+
+	virtual void SetIsPause(const bool arg_isPause)=0;
+	virtual bool GetIsPause()=0;
+};
+
 BUTIBULLET_API ButiEngine::Value_ptr<IJoint> CreateP2PJoint(ButiEngine::Value_ptr< IRigidBody> arg_vlp_object, const ButiEngine::Vector3& arg_jointPosition,
     const float arg_durability);
 BUTIBULLET_API ButiEngine::Value_ptr<IJoint> CreateP2PJoint(ButiEngine::Value_ptr< IRigidBody> arg_vlp_objectA, const ButiEngine::Vector3& arg_jointPositionA,

@@ -159,6 +159,10 @@ bool ButiBullet::PhysicsWorld::RaycastAllHit(const ButiEngine::Vector3& arg_orig
 void ButiBullet::PhysicsWorld::StepSimulation(const float arg_elapsedSeconds)
 {
     UpdateObjectList();
+	if (m_isPause) {
+		return;
+	}
+
     {
         std::lock_guard lock(m_mtx_sim);
         for (auto& obj : m_list_vlp_physicsObject) {
@@ -342,14 +346,24 @@ void ButiBullet::PhysicsWorld::UpdateObjectList()
 
 void ButiBullet::PhysicsWorld::AddObjectInternal(PhysicsObject* arg_p_obj)
 {
-    switch (arg_p_obj->GetPhysicsObjectType())
-    {
-    case PhysicsObjectType::RigidBody:
-        m_p_btWorld->addRigidBody(reinterpret_cast<RigidBody*>(arg_p_obj)->GetBody());
-        break;
-    default:
+	switch (arg_p_obj->GetPhysicsObjectType())
+	{
+	case PhysicsObjectType::RigidBody:
+		m_p_btWorld->addRigidBody(reinterpret_cast<RigidBody*>(arg_p_obj)->GetBody());
+		break;
+	default:
 
-        break;
-    }
+		break;
+	}
+}
+void ButiBullet::PhysicsWorld::SetIsPause(const bool arg_isPause)
+{
+	std::lock_guard lock(m_mtx_sim);
+	m_isPause = arg_isPause;
+}
+bool ButiBullet::PhysicsWorld::GetIsPause()
+{
+	std::lock_guard lock(m_mtx_sim);
+	return m_isPause;
 }
 

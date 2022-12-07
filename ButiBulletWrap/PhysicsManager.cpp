@@ -30,12 +30,12 @@ void ButiBullet::PhysicsManager::Update()
 	vlp_activePhysicsWorld->StepSimulation(StepSeconds60FPS);
 }
 
-void ButiBullet::PhysicsManager::SetActivePhysicsWorld(ButiEngine::Value_ptr<PhysicsWorld> arg_vlp_world)
+void ButiBullet::PhysicsManager::SetActivePhysicsWorld(ButiEngine::Value_ptr<IPhysicsWorld> arg_vlp_world)
 {
-	vlp_activePhysicsWorld = arg_vlp_world;
+	vlp_activePhysicsWorld = ButiEngine::dynamic_value_ptr_cast<PhysicsWorld>( arg_vlp_world);
 }
 
-ButiEngine::Value_ptr<ButiBullet::PhysicsWorld> ButiBullet::PhysicsManager::GetActivePhysicsWorld() const
+ButiEngine::Value_ptr<ButiBullet::IPhysicsWorld> ButiBullet::PhysicsManager::GetActivePhysicsWorld() const
 {
 	return vlp_activePhysicsWorld;
 }
