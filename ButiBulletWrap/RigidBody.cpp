@@ -434,7 +434,9 @@ void ButiBullet::RigidBody::OnAfterStepSimulation()
 void ButiBullet::RigidBody::RemoveFromBtWorld()
 {
     std::lock_guard lock(mtx_param);
-    GetPhysicsWorld()->GetBtWorld()->removeRigidBody(p_btRigidBody);
+	if (p_btRigidBody) {
+		GetPhysicsWorld()->GetBtWorld()->removeRigidBody(p_btRigidBody);
+	}
     SetPhysicsWorld(nullptr);
 }
 
