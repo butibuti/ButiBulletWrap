@@ -310,9 +310,9 @@ void ButiBullet::RigidBody::AddCollisionShape(ButiEngine::Value_ptr<CollisionSha
 
 void ButiBullet::RigidBody::OnPrepareStepSimulation()
 {
-    std::lock_guard lock(mtx_param);
     PhysicsObject::OnPrepareStepSimulation();
 
+	std::lock_guard lock(mtx_param);
 
     if ((modifiedFlags & Modified_InitialUpdate) )
     {
